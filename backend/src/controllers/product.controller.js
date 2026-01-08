@@ -2,6 +2,7 @@ import { Product } from "../models/product.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+import { uploadOnCloudinary } from "../utils/cloudinary.js";
 
 // Get all products or by category
 const getAllProducts = asyncHandler(async (req, res) => {
@@ -36,10 +37,22 @@ const getProductById = asyncHandler(async (req, res) => {
 
 // Create product (Admin only)
 const createProduct = asyncHandler(async (req, res) => {
-  const { name, description, price, category, image, stock, brand } = req.body;
+  const { name, description, price, category, stock, brand } = req.body;
 
   if (!name || !description || !price || !category) {
     throw new ApiError(400, "All required fields must be provided");
+  }
+
+  let imageUrl = "";
+  
+  // Handle image upload if file is provided
+  if (req.file) {
+    const imageLocalPath = req.file.path;
+    const uploadedImage = await uploadOnCloudinary(imageLocalPath);
+    
+    if (uploadedImage) {
+      imageUrl = uploadedImage.url;
+    }
   }
 
   const product = await Product.create({
@@ -47,7 +60,7 @@ const createProduct = asyncHandler(async (req, res) => {
     description,
     price,
     category,
-    image: image || "",
+    image: imageUrl,
     stock: stock || 0,
     brand: brand || ""
   });
@@ -60,7 +73,7 @@ const createProduct = asyncHandler(async (req, res) => {
 // Update product (Admin only)
 const updateProduct = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const { name, description, price, category, image, stock, brand, isActive } = req.body;
+  const { name, description, price, category, stock, brand, isActive } = req.body;
 
   const product = await Product.findById(id);
 
@@ -68,11 +81,20 @@ const updateProduct = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Product not found");
   }
 
+  // Handle image upload if new file is provided
+  if (req.file) {
+    const imageLocalPath = req.file.path;
+    const uploadedImage = await uploadOnCloudinary(imageLocalPath);
+    
+    if (uploadedImage) {
+      product.image = uploadedImage.url;
+    }
+  }
+
   if (name) product.name = name;
   if (description) product.description = description;
   if (price !== undefined) product.price = price;
   if (category) product.category = category;
-  if (image !== undefined) product.image = image;
   if (stock !== undefined) product.stock = stock;
   if (brand !== undefined) product.brand = brand;
   if (isActive !== undefined) product.isActive = isActive;

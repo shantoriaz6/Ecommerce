@@ -12,6 +12,8 @@ const AdminAddProduct = () => {
     stock: '',
     image: ''
   })
+  const [imageFile, setImageFile] = useState(null)
+  const [imagePreview, setImagePreview] = useState('')
   const [success, setSuccess] = useState('')
   const [error, setError] = useState('')
 
@@ -24,6 +26,19 @@ const AdminAddProduct = () => {
     })
   }
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0]
+    if (file) {
+      setImageFile(file)
+      // Create preview URL
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setImagePreview(reader.result)
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
@@ -31,8 +46,25 @@ const AdminAddProduct = () => {
 
     try {
       const token = localStorage.getItem('adminAccessToken')
-      await axiosInstance.post('/products', formData, {
-        headers: { Authorization: `Bearer ${token}` }
+      
+      // Create FormData for file upload
+      const submitData = new FormData()
+      submitData.append('name', formData.name)
+      submitData.append('description', formData.description)
+      submitData.append('price', formData.price)
+      submitData.append('category', formData.category)
+      submitData.append('brand', formData.brand)
+      submitData.append('stock', formData.stock)
+      
+      if (imageFile) {
+        submitData.append('image', imageFile)
+      }
+      
+      await axiosInstance.post('/products', submitData, {
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data'
+        }
       })
       
       setSuccess('Product added successfully!')
@@ -45,6 +77,8 @@ const AdminAddProduct = () => {
         stock: '',
         image: ''
       })
+      setImageFile(null)
+      setImagePreview('')
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to add product')
     }
@@ -166,15 +200,23 @@ const AdminAddProduct = () => {
 
             <div>
               <label className="block text-sm font-medium mb-1" style={{ color: '#284B63' }}>
-                Image URL
+                Product Image
               </label>
               <input
-                type="url"
-                name="image"
-                value={formData.image}
-                onChange={handleChange}
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
                 className="w-full px-3 py-2 border rounded-md"
               />
+              {imagePreview && (
+                <div className="mt-3">
+                  <img 
+                    src={imagePreview} 
+                    alt="Preview" 
+                    className="h-40 w-40 object-cover rounded-md border"
+                  />
+                </div>
+              )}
             </div>
 
             <button

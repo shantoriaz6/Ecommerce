@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react'
 import axiosInstance from '../services/axios'
+import { useCart } from '../context/CartContext'
 
 const Home = () => {
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const { addToCart } = useCart()
 
   useEffect(() => {
     fetchProducts()
@@ -24,21 +26,13 @@ const Home = () => {
     }
   }
 
-  const handleAddToCart = (product) => {
-    // Get existing cart from localStorage
-    const cart = JSON.parse(localStorage.getItem('cart') || '[]')
-    
-    // Check if product already exists in cart
-    const existingItem = cart.find(item => item._id === product._id)
-    
-    if (existingItem) {
-      existingItem.quantity += 1
-    } else {
-      cart.push({ ...product, quantity: 1 })
+  const handleAddToCart = async (product) => {
+    try {
+      await addToCart(product._id)
+      alert('Product added to cart!')
+    } catch (err) {
+      alert(err.message || 'Failed to add product to cart')
     }
-    
-    localStorage.setItem('cart', JSON.stringify(cart))
-    alert('Product added to cart!')
   }
 
   if (loading) {

@@ -12,14 +12,14 @@ import { verifyAdmin } from "../middlewares/admin.middleware.js";
 
 const router = Router();
 
-// User routes (protected)
-router.route("/").post(verifyjwt, createOrder);
-router.route("/my-orders").get(verifyjwt, getUserOrders);
-router.route("/:id").get(verifyjwt, getOrderById);
-router.route("/:id/cancel").patch(verifyjwt, cancelOrder);
-
-// Admin routes
+// Admin routes (must come before parameterized routes)
 router.route("/all").get(verifyAdmin, getAllOrders);
 router.route("/:id/status").patch(verifyAdmin, updateOrderStatus);
+
+// User routes (protected)
+router.route("/").post(verifyjwt, createOrder);
+router.route("/").get(verifyjwt, getUserOrders);
+router.route("/:id").get(verifyjwt, getOrderById);
+router.route("/:id/cancel").patch(verifyjwt, cancelOrder);
 
 export default router;

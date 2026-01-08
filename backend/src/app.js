@@ -19,12 +19,14 @@ import userRoutes from './routes/user.route.js';
 import productRoutes from './routes/product.route.js';
 import orderRoutes from './routes/order.route.js';
 import adminRoutes from './routes/admin.route.js';
+import cartRoutes from './routes/cart.route.js';
 
 //routes decleration
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/products', productRoutes);
 app.use('/api/v1/orders', orderRoutes);
 app.use('/api/v1/admin', adminRoutes);
+app.use('/api/v1/cart', cartRoutes);
 
 
 export { app };

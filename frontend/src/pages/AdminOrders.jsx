@@ -27,14 +27,18 @@ const AdminOrders = () => {
   const updateOrderStatus = async (orderId, newStatus) => {
     try {
       const token = localStorage.getItem('adminAccessToken')
-      await axiosInstance.patch(
+      const response = await axiosInstance.patch(
         `/orders/${orderId}/status`,
         { status: newStatus },
         { headers: { Authorization: `Bearer ${token}` } }
       )
-      fetchOrders()
+      
+      if (response.data.success) {
+        alert(`Order ${newStatus === 'Confirmed' ? 'confirmed' : 'status updated'} successfully! User will be notified.`)
+        fetchOrders()
+      }
     } catch (err) {
-      alert('Failed to update order status')
+      alert(err.response?.data?.message || 'Failed to update order status')
     }
   }
 
@@ -77,6 +81,14 @@ const AdminOrders = () => {
                 </div>
 
                 <div className="mb-4">
+                  <h4 className="font-semibold mb-2" style={{ color: '#284B63' }}>Shipping Address:</h4>
+                  <p className="text-sm text-gray-700">{order.shippingAddress}</p>
+                  {order.phone && (
+                    <p className="text-sm text-gray-700">Phone: {order.phone}</p>
+                  )}
+                </div>
+
+                <div className="mb-4">
                   <h4 className="font-semibold mb-2" style={{ color: '#284B63' }}>Items:</h4>
                   {order.items.map((item, idx) => (
                     <p key={idx} className="text-sm text-gray-700">
@@ -85,19 +97,32 @@ const AdminOrders = () => {
                   ))}
                 </div>
 
-                <div className="flex items-center space-x-4">
-                  <label className="font-semibold" style={{ color: '#284B63' }}>Status:</label>
-                  <select
-                    value={order.status}
-                    onChange={(e) => updateOrderStatus(order._id, e.target.value)}
-                    className="px-3 py-2 border rounded-md"
-                  >
-                    <option value="Pending">Pending</option>
-                    <option value="Confirmed">Confirmed</option>
-                    <option value="Shipped">Shipped</option>
-                    <option value="Delivered">Delivered</option>
-                    <option value="Cancelled">Cancelled</option>
-                  </select>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-4">
+                    <label className="font-semibold" style={{ color: '#284B63' }}>Status:</label>
+                    <select
+                      value={order.status}
+                      onChange={(e) => updateOrderStatus(order._id, e.target.value)}
+                      className="px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      style={{ borderColor: '#284B63' }}
+                    >
+                      <option value="Pending">Pending</option>
+                      <option value="Confirmed">Confirmed</option>
+                      <option value="Shipped">Shipped</option>
+                      <option value="Delivered">Delivered</option>
+                      <option value="Cancelled">Cancelled</option>
+                    </select>
+                  </div>
+                  
+                  {order.status === 'Pending' && (
+                    <button
+                      onClick={() => updateOrderStatus(order._id, 'Confirmed')}
+                      className="px-6 py-2 text-white rounded-lg hover:bg-green-700 transition duration-200"
+                      style={{ backgroundColor: '#10B981' }}
+                    >
+                      Confirm Order
+                    </button>
+                  )}
                 </div>
               </div>
             ))}

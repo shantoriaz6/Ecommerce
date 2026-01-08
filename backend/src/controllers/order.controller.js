@@ -1,12 +1,13 @@
 import { Order } from "../models/order.model.js";
 import { Product } from "../models/product.model.js";
+import { Cart } from "../models/cart.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
 // Create order (User)
 const createOrder = asyncHandler(async (req, res) => {
-  const { items, shippingAddress } = req.body;
+  const { items, shippingAddress, phone } = req.body;
 
   if (!items || items.length === 0) {
     throw new ApiError(400, "Order must contain at least one item");
@@ -44,8 +45,15 @@ const createOrder = asyncHandler(async (req, res) => {
     user: req.user._id,
     items: orderItems,
     totalAmount,
-    shippingAddress: shippingAddress || req.user.address
+    shippingAddress: shippingAddress || req.user.address,
+    phone: phone || req.user.contactNumber
   });
+
+  // Clear user's cart after successful order
+  await Cart.findOneAndUpdate(
+    { user: req.user._id },
+    { items: [] }
+  );
 
   const populatedOrder = await Order.findById(order._id).populate('items.product');
 
