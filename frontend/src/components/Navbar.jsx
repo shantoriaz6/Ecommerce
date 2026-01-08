@@ -1,16 +1,40 @@
-import React, { useState } from 'react'
-import { Link } from 'react-router-dom'
+import React, { useState, useEffect } from 'react'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 
 const Navbar = () => {
   const [showCategories, setShowCategories] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const navigate = useNavigate()
+  const location = useLocation()
 
-  const categories = ['Phone', 'Laptop', 'AirPods', 'Charger']
+  const categories = ['Phone', 'Laptop', 'AirPods', 'Charger', 'Printer', 'Camera', 'Monitor', 'Gaming', 'Sound', 'Gadget']
+
+  useEffect(() => {
+    // Check if user is logged in by checking for accessToken
+    const token = localStorage.getItem('accessToken')
+    setIsLoggedIn(!!token)
+  }, [location])
+
+  const handleAuthClick = () => {
+    if (isLoggedIn) {
+      // Logout
+      localStorage.removeItem('accessToken')
+      localStorage.removeItem('refreshToken')
+      setIsLoggedIn(false)
+      navigate('/')
+    } else {
+      // Navigate to login
+      navigate('/login')
+    }
+  }
 
   return (
-    <nav className="bg-gray-800 text-white py-4 shadow-md">
+    <nav className="text-white py-6 shadow-md" style={{ backgroundColor: '#353535' }}>
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-8">
+          {/* Desktop Navigation */}
+          <div className="hidden lg:flex items-center space-x-8">
             <Link 
               to="/" 
               className="hover:text-blue-400 font-semibold transition duration-200"
@@ -46,6 +70,48 @@ const Navbar = () => {
               Charger
             </Link>
 
+            <Link 
+              to="/products/printer" 
+              className="hover:text-blue-400 font-semibold transition duration-200"
+            >
+              Printer
+            </Link>
+
+            <Link 
+              to="/products/camera" 
+              className="hover:text-blue-400 font-semibold transition duration-200"
+            >
+              Camera
+            </Link>
+
+            <Link 
+              to="/products/monitor" 
+              className="hover:text-blue-400 font-semibold transition duration-200"
+            >
+              Monitor
+            </Link>
+
+            <Link 
+              to="/products/gaming" 
+              className="hover:text-blue-400 font-semibold transition duration-200"
+            >
+              Gaming
+            </Link>
+
+            <Link 
+              to="/products/sound" 
+              className="hover:text-blue-400 font-semibold transition duration-200"
+            >
+              Sound
+            </Link>
+
+            <Link 
+              to="/products/gadget" 
+              className="hover:text-blue-400 font-semibold transition duration-200"
+            >
+              Gadget
+            </Link>
+
             {/* All Categories Dropdown */}
             <div className="relative">
               <button
@@ -75,22 +141,170 @@ const Navbar = () => {
             </div>
           </div>
 
-          {/* Auth Links */}
-          <div className="flex items-center space-x-4">
+          {/* Mobile Menu Button */}
+          <button 
+            className="lg:hidden text-white text-2xl"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          >
+            {mobileMenuOpen ? '✕' : '☰'}
+          </button>
+
+          {/* Icons - Cart and Auth */}
+          <div className="flex items-center space-x-4 sm:space-x-6 ml-auto">
+            {/* Cart Icon */}
             <Link 
-              to="/login" 
-              className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg font-semibold transition duration-200"
+              to="/cart" 
+              className="relative hover:text-blue-400 transition duration-200"
+              title="Cart"
             >
-              Login
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 sm:h-7 sm:w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">0</span>
             </Link>
-            <Link 
-              to="/register" 
-              className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg font-semibold transition duration-200"
+
+            {/* Sign In/Out Icon */}
+            <button
+              onClick={handleAuthClick}
+              className="flex items-center space-x-2 hover:text-blue-400 transition duration-200"
+              title={isLoggedIn ? 'Sign Out' : 'Sign In'}
             >
-              Register
-            </Link>
+              {isLoggedIn ? (
+                <>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 sm:h-7 sm:w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                  <span className="hidden md:inline text-sm">Sign Out</span>
+                </>
+              ) : (
+                <>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 sm:h-7 sm:w-7" viewBox="0 0 24 24" fill="currentColor">
+                    <path fillRule="evenodd" d="M18.685 19.097A9.723 9.723 0 0021.75 12c0-5.385-4.365-9.75-9.75-9.75S2.25 6.615 2.25 12a9.723 9.723 0 003.065 7.097A9.716 9.716 0 0012 21.75a9.716 9.716 0 006.685-2.653zm-12.54-1.285A7.486 7.486 0 0112 15a7.486 7.486 0 015.855 2.812A8.224 8.224 0 0112 20.25a8.224 8.224 0 01-5.855-2.438zM15.75 9a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" clipRule="evenodd" />
+                  </svg>
+                  <span className="hidden md:inline text-sm">Sign In</span>
+                </>
+              )}
+            </button>
           </div>
         </div>
+
+        {/* Mobile Menu */}
+        {mobileMenuOpen && (
+          <div className="lg:hidden mt-4 pb-4 space-y-2">
+            <Link 
+              to="/" 
+              className="block py-2 px-4 hover:bg-gray-700 rounded transition duration-200"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Home
+            </Link>
+            <Link 
+              to="/products/phone" 
+              className="block py-2 px-4 hover:bg-gray-700 rounded transition duration-200"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Phone
+            </Link>
+            <Link 
+              to="/products/laptop" 
+              className="block py-2 px-4 hover:bg-gray-700 rounded transition duration-200"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Laptop
+            </Link>
+            <Link 
+              to="/products/airpods" 
+              className="block py-2 px-4 hover:bg-gray-700 rounded transition duration-200"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              AirPods
+            </Link>
+            <Link 
+              to="/products/charger" 
+              className="block py-2 px-4 hover:bg-gray-700 rounded transition duration-200"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Charger
+            </Link>
+            <Link 
+              to="/products/printer" 
+              className="block py-2 px-4 hover:bg-gray-700 rounded transition duration-200"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Printer
+            </Link>
+            <Link 
+              to="/products/camera" 
+              className="block py-2 px-4 hover:bg-gray-700 rounded transition duration-200"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Camera
+            </Link>
+            <Link 
+              to="/products/monitor" 
+              className="block py-2 px-4 hover:bg-gray-700 rounded transition duration-200"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Monitor
+            </Link>
+            <Link 
+              to="/products/gaming" 
+              className="block py-2 px-4 hover:bg-gray-700 rounded transition duration-200"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Gaming
+            </Link>
+            <Link 
+              to="/products/sound" 
+              className="block py-2 px-4 hover:bg-gray-700 rounded transition duration-200"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Sound
+            </Link>
+            <Link 
+              to="/products/gadget" 
+              className="block py-2 px-4 hover:bg-gray-700 rounded transition duration-200"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Gadget
+            </Link>
+            <div className="border-t border-gray-700 mt-2 pt-2 space-y-2">
+              <Link 
+                to="/cart" 
+                className="flex items-center space-x-2 py-2 px-4 hover:bg-gray-700 rounded transition duration-200"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                <span>Cart (0)</span>
+              </Link>
+              <button
+                onClick={() => {
+                  handleAuthClick()
+                  setMobileMenuOpen(false)
+                }}
+                className="w-full text-left flex items-center space-x-2 py-2 px-4 hover:bg-gray-700 rounded transition duration-200"
+              >
+                {isLoggedIn ? (
+                  <>
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    <span>Sign Out</span>
+                  </>
+                ) : (
+                  <>
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                      <path fillRule="evenodd" d="M18.685 19.097A9.723 9.723 0 0021.75 12c0-5.385-4.365-9.75-9.75-9.75S2.25 6.615 2.25 12a9.723 9.723 0 003.065 7.097A9.716 9.716 0 0012 21.75a9.716 9.716 0 006.685-2.653zm-12.54-1.285A7.486 7.486 0 0112 15a7.486 7.486 0 015.855 2.812A8.224 8.224 0 0112 20.25a8.224 8.224 0 01-5.855-2.438zM15.75 9a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" clipRule="evenodd" />
+                    </svg>
+                    <span>Sign In</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </nav>
   )

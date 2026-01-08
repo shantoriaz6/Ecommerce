@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import axiosInstance from '../services/axios'
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -17,14 +18,48 @@ const Register = () => {
     })
   }
 
-  const handleSubmit = (e) => {
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState('')
+  const navigate = useNavigate()
+
+  const handleSubmit = async (e) => {
     e.preventDefault()
+    setError('')
+
     if (formData.password !== formData.confirmPassword) {
-      alert('Passwords do not match!')
+      setError('Passwords do not match')
       return
     }
-    console.log('Register:', formData)
-    alert('Registration successful!')
+
+    const userName = formData.email
+      ? formData.email.split('@')[0].toLowerCase()
+      : formData.name.trim().toLowerCase().replace(/\s+/g, '')
+
+    try {
+      setSubmitting(true)
+      const payload = {
+        fullName: formData.name.trim(),
+        userName,
+        email: formData.email.trim().toLowerCase(),
+        password: formData.password,
+        confirmPassword: formData.confirmPassword,
+      }
+
+      const response = await axiosInstance.post('/users/register', payload)
+      
+      // Store tokens
+      const { accessToken, refreshToken } = response.data.data
+      localStorage.setItem('accessToken', accessToken)
+      localStorage.setItem('refreshToken', refreshToken)
+      
+      // Redirect to home
+      navigate('/')
+    } catch (err) {
+      const message = err.response?.data?.message || err.message || 'Registration failed'
+      setError(message)
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -32,6 +67,8 @@ const Register = () => {
       <div className="bg-white rounded-lg shadow-xl p-8 w-full max-w-md">
         <h2 className="text-3xl font-bold text-center text-gray-800 mb-8">Register</h2>
         
+        {error && <div className="text-red-600 text-sm mb-2">{error}</div>}
+
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
             <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
@@ -99,9 +136,10 @@ const Register = () => {
 
           <button
             type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200"
+            disabled={submitting}
+            className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white font-bold py-2 px-4 rounded-lg transition duration-200"
           >
-            Register
+            {submitting ? 'Registering...' : 'Register'}
           </button>
         </form>
 

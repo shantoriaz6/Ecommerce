@@ -13,6 +13,13 @@ const userSchema = new Schema(
       index: true,
     },
 
+    fullName: {
+      type: String,
+      required: true,
+      lowercase: true,
+      trim: true,
+    },
+
     email: {
       type: String,
       required: true,
@@ -24,11 +31,42 @@ const userSchema = new Schema(
    
     avatar: {
       type: String, //cloudinary url
-
-      required: true,
+      default: "",
     },
 
-   
+    sex: {
+      type: String,
+      trim: true,
+    },
+
+    contactNumber: {
+      type: String,
+      trim: true,
+    },
+
+    address: {
+      street: {
+        type: String,
+        trim: true,
+      },
+      city: {
+        type: String,
+        trim: true,
+      },
+      state: {
+        type: String,
+        trim: true,
+      },
+      postalCode: {
+        type: String,
+        trim: true,
+      },
+      country: {
+        type: String,
+        trim: true,
+      },
+    },
+
     password: {
       type: String,
       required: [true, "password is required"],
@@ -43,11 +81,10 @@ const userSchema = new Schema(
   }
 );
 
-userSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return next();
+userSchema.pre("save", async function () {
+  if (!this.isModified("password")) return;
 
   this.password = await bcrypt.hash(this.password, 10);
-  next();
 });
 
 userSchema.methods.isPasswordCorrect = async function (password) {
