@@ -1,16 +1,73 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
+import axiosInstance from '../services/axios'
 
 const Home = () => {
-  const products = [
-    { id: 1, name: 'iPhone 15', category: 'Phone', price: '$999' },
-    { id: 2, name: 'Samsung S24', category: 'Phone', price: '$899' },
-    { id: 3, name: 'MacBook Pro', category: 'Laptop', price: '$1999' },
-    { id: 4, name: 'Dell XPS', category: 'Laptop', price: '$1499' },
-    { id: 5, name: 'AirPods Pro', category: 'AirPods', price: '$249' },
-    { id: 6, name: 'Sony WH-1000XM5', category: 'AirPods', price: '$399' },
-    { id: 7, name: 'iPhone Charger', category: 'Charger', price: '$29' },
-    { id: 8, name: 'Fast Charger', category: 'Charger', price: '$49' }
-  ]
+  const [products, setProducts] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    fetchProducts()
+  }, [])
+
+  const fetchProducts = async () => {
+    try {
+      setLoading(true)
+      const response = await axiosInstance.get('/products')
+      setProducts(response.data.data)
+      setError(null)
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to fetch products')
+      console.error('Error fetching products:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleAddToCart = (product) => {
+    // Get existing cart from localStorage
+    const cart = JSON.parse(localStorage.getItem('cart') || '[]')
+    
+    // Check if product already exists in cart
+    const existingItem = cart.find(item => item._id === product._id)
+    
+    if (existingItem) {
+      existingItem.quantity += 1
+    } else {
+      cart.push({ ...product, quantity: 1 })
+    }
+    
+    localStorage.setItem('cart', JSON.stringify(cart))
+    alert('Product added to cart!')
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2" style={{ borderColor: '#284B63' }}></div>
+          <p className="mt-4" style={{ color: '#284B63' }}>Loading products...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">{error}</p>
+          <button 
+            onClick={fetchProducts}
+            className="px-4 py-2 rounded-lg text-white"
+            style={{ backgroundColor: '#284B63' }}
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -18,19 +75,38 @@ const Home = () => {
         <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-center mb-6 sm:mb-8 lg:mb-12" style={{ color: '#284B63' }}>Featured Products</h1>
         
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-          {products.map((product) => (
-            <div key={product.id} className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 p-4 sm:p-6">
-              <div className="h-40 sm:h-48 bg-gray-200 rounded-lg mb-3 sm:mb-4 flex items-center justify-center">
-                <span className="text-gray-400 text-sm sm:text-base">Product Image</span>
-              </div>
-              <h2 className="text-base sm:text-lg font-bold mb-2" style={{ color: '#284B63' }}>{product.name}</h2>
-              <p className="text-xs sm:text-sm mb-2" style={{ color: '#284B63' }}>{product.category}</p>
-              <p className="text-lg sm:text-xl font-bold mb-3 sm:mb-4" style={{ color: '#284B63' }}>{product.price}</p>
-              <button className="w-full hover:bg-blue-700 font-bold py-2 px-4 rounded-lg transition duration-200 text-sm sm:text-base" style={{ backgroundColor: '#284B63', color: '#FFFFFF' }}>
-                Add to Cart
-              </button>
+          {products.length === 0 ? (
+            <div className="col-span-full text-center py-12">
+              <p style={{ color: '#284B63' }}>No products available</p>
             </div>
-          ))}
+          ) : (
+            products.map((product) => (
+              <div key={product._id} className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 p-4 sm:p-6">
+                <div className="h-40 sm:h-48 bg-gray-200 rounded-lg mb-3 sm:mb-4 flex items-center justify-center overflow-hidden">
+                  {product.image ? (
+                    <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-gray-400 text-sm sm:text-base">Product Image</span>
+                  )}
+                </div>
+                <h2 className="text-base sm:text-lg font-bold mb-2" style={{ color: '#284B63' }}>{product.name}</h2>
+                <p className="text-xs sm:text-sm mb-2" style={{ color: '#284B63' }}>{product.category}</p>
+                {product.brand && (
+                  <p className="text-xs sm:text-sm mb-2 text-gray-500">Brand: {product.brand}</p>
+                )}
+                <p className="text-lg sm:text-xl font-bold mb-3 sm:mb-4" style={{ color: '#284B63' }}>${product.price}</p>
+                <p className="text-xs sm:text-sm mb-3 text-gray-600">Stock: {product.stock}</p>
+                <button 
+                  onClick={() => handleAddToCart(product)}
+                  disabled={product.stock === 0}
+                  className="w-full hover:bg-blue-700 font-bold py-2 px-4 rounded-lg transition duration-200 text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed" 
+                  style={{ backgroundColor: '#284B63', color: '#FFFFFF' }}
+                >
+                  {product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
+                </button>
+              </div>
+            ))
+          )}
         </div>
       </div>
     </div>

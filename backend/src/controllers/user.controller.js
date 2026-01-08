@@ -11,16 +11,29 @@ const cookieOptions = {
 };
 
 const generateAccessAndRefreshTokens = async (userId) => {
-  const user = await User.findById(userId);
-  if (!user) throw new ApiError(404, "User not found");
+  try {
+    const user = await User.findById(userId);
+    if (!user) throw new ApiError(404, "User not found");
 
-  const accessToken = user.generateAccessToken();
-  const refreshToken = user.generateRefreshToken();
+    if (!process.env.ACCESS_TOKEN_SECRET || !process.env.REFRESH_TOKEN_SECRET) {
+      console.error('Missing token secrets in environment variables');
+      throw new ApiError(500, "Server configuration error: Missing token secrets");
+    }
 
-  user.refreshToken = refreshToken;
-  await user.save({ validateBeforeSave: false });
+    const accessToken = user.generateAccessToken();
+    const refreshToken = user.generateRefreshToken();
 
-  return { accessToken, refreshToken };
+    user.refreshToken = refreshToken;
+    await user.save({ validateBeforeSave: false });
+
+    return { accessToken, refreshToken };
+  } catch (error) {
+    console.error('Token generation error:', error);
+    if (error instanceof ApiError) {
+      throw error;
+    }
+    throw new ApiError(500, `Token generation failed: ${error.message}`);
+  }
 };
 
 const registerUser = asyncHandler(async (req, res) => {
