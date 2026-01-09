@@ -7,7 +7,7 @@ const Topbar = () => {
         <div className="flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-0">
           {/* Logo/Title */}
           <div className="flex items-center gap-2">
-            <img src="/logo.png" alt="Gadget World Logo" className="h-16 w-16 sm:h-20 sm:w-20 object-contain" />
+            <img src="/logo.png" alt="Gadget World Logo" className="h-24 w-24 sm:h-20 sm:w-20 object-contain" />
             <h1 className="text-lg sm:text-xl font-bold">Gadget WORLD</h1>
           </div>
 

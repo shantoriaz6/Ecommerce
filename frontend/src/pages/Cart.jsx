@@ -97,7 +97,7 @@ const Cart = () => {
                   {/* Quantity Controls */}
                   <div className="flex flex-col justify-between items-end">
                     <button
-                      onClick={() => handleRemove(item._id)}
+                      onClick={() => handleRemove(item.product._id)}
                       className="text-red-500 hover:text-red-700 transition duration-200 mb-4"
                       title="Remove from cart"
                     >
@@ -108,7 +108,7 @@ const Cart = () => {
 
                     <div className="flex items-center border border-gray-300 rounded-lg">
                       <button
-                        onClick={() => handleQuantityChange(item._id, item.quantity - 1)}
+                        onClick={() => handleQuantityChange(item.product._id, item.quantity - 1)}
                         className="px-3 py-1 hover:bg-gray-100 transition duration-200"
                         disabled={item.quantity <= 1}
                       >
@@ -116,7 +116,7 @@ const Cart = () => {
                       </button>
                       <span className="px-4 py-1 border-x border-gray-300">{item.quantity}</span>
                       <button
-                        onClick={() => handleQuantityChange(item._id, item.quantity + 1)}
+                        onClick={() => handleQuantityChange(item.product._id, item.quantity + 1)}
                         className="px-3 py-1 hover:bg-gray-100 transition duration-200"
                         disabled={item.quantity >= item.product.stock}
                       >

@@ -13,9 +13,15 @@ const axiosInstance = axios.create({
 // Request interceptor - Add token to headers if available
 axiosInstance.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('accessToken');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    // Only add token for routes that need authentication
+    const publicRoutes = ['/products', '/users/login', '/users/register'];
+    const isPublicRoute = publicRoutes.some(route => config.url?.startsWith(route));
+    
+    if (!isPublicRoute) {
+      const token = localStorage.getItem('accessToken');
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
     }
     return config;
   },
