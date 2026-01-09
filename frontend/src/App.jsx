@@ -9,6 +9,7 @@ import ProductCategory from './pages/ProductCategory'
 import Cart from './pages/Cart'
 import Checkout from './pages/Checkout'
 import Orders from './pages/Orders'
+import UserProfile from './pages/UserProfile'
 import AdminLogin from './pages/AdminLogin'
 import AdminDashboard from './pages/AdminDashboard'
 import AdminOrders from './pages/AdminOrders'
@@ -37,6 +38,7 @@ function App() {
         <Route path="/cart" element={<Cart />} />
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/orders" element={<Orders />} />
+        <Route path="/profile" element={<UserProfile />} />
         
         {/* Admin Routes */}
         <Route path="/admin/login" element={<AdminLogin />} />

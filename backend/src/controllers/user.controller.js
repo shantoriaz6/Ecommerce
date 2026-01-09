@@ -3,6 +3,7 @@ import { User } from "../models/user.model.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
+import { uploadOnCloudinary } from "../utils/cloudinary.js";
 
 const cookieOptions = {
   httpOnly: true,
@@ -158,15 +159,26 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
   const userId = req.user?._id;
   if (!userId) throw new ApiError(401, "Unauthorized");
 
-  const { fullName, email, avatar, sex, contactNumber, address } = req.body;
+  const { fullName, email, sex, contactNumber, address } = req.body;
 
   const updates = {};
   if (fullName) updates.fullName = fullName.trim();
   if (email) updates.email = email.trim().toLowerCase();
-  if (avatar !== undefined) updates.avatar = avatar;
   if (sex !== undefined) updates.sex = sex;
   if (contactNumber !== undefined) updates.contactNumber = contactNumber;
-  if (address) updates.address = { ...address };
+  if (address) updates.address = address;
+
+  // Handle avatar upload if file is provided
+  if (req.file) {
+    const avatarLocalPath = req.file.path;
+    const avatarResponse = await uploadOnCloudinary(avatarLocalPath);
+    
+    if (!avatarResponse) {
+      throw new ApiError(500, "Failed to upload avatar");
+    }
+    
+    updates.avatar = avatarResponse.secure_url || avatarResponse.url;
+  }
 
   if (Object.keys(updates).length === 0) throw new ApiError(400, "No fields to update");
 

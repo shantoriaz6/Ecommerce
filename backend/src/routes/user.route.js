@@ -9,6 +9,7 @@ import {
   refreshAccessToken,
 } from "../controllers/user.controller.js";
 import { verifyjwt } from "../middlewares/auth.middleware.js";
+import { upload } from "../middlewares/multer.middleware.js";
 
 const router = Router();
 
@@ -20,7 +21,7 @@ router.post("/refresh-token", refreshAccessToken);
 // Protected
 router.post("/logout", verifyjwt, logoutUser);
 router.get("/profile", verifyjwt, getUserProfile);
-router.patch("/profile", verifyjwt, updateAccountDetails);
+router.patch("/profile", verifyjwt, upload.single("avatar"), updateAccountDetails);
 router.post("/change-password", verifyjwt, changePassword);
 
 export default router;
