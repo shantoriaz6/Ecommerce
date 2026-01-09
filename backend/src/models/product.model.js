@@ -19,7 +19,7 @@ const productSchema = new mongoose.Schema(
     category: {
       type: String,
       required: true,
-      enum: ['Phone', 'Laptop', 'AirPods', 'Charger', 'Printer', 'Camera', 'Monitor', 'Gaming', 'Sound', 'Gadget']
+      enum: ['Phone', 'Laptop', 'AirPods', 'Headphone', 'Charger', 'Printer', 'Camera', 'Monitor', 'Gaming', 'Sound', 'Gadget']
     },
     image: {
       type: String,
@@ -34,6 +34,12 @@ const productSchema = new mongoose.Schema(
     brand: {
       type: String,
       trim: true
+    },
+    discount: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 100
     },
     isActive: {
       type: Boolean,

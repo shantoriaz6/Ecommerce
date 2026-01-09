@@ -154,7 +154,7 @@ const Cart = () => {
 
                 <button
                   onClick={handleCheckout}
-                  className="w-full text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700 transition duration-200"
+                  className="w-full text-white font-bold py-3 px-6 rounded-lg hover:opacity-90 transition duration-200"
                   style={{ backgroundColor: '#284B63' }}
                 >
                   Proceed to Checkout

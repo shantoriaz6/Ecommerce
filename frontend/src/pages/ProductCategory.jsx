@@ -10,7 +10,22 @@ const ProductCategory = () => {
   const [error, setError] = useState(null)
   const { addToCart } = useCart()
   
-  const formatted = category ? category.charAt(0).toUpperCase() + category.slice(1) : 'Category'
+  // Map URL categories to exact backend category names
+  const categoryMap = {
+    'phone': 'Phone',
+    'laptop': 'Laptop',
+    'airpods': 'AirPods',
+    'headphone': 'Headphone',
+    'charger': 'Charger',
+    'printer': 'Printer',
+    'camera': 'Camera',
+    'monitor': 'Monitor',
+    'gaming': 'Gaming',
+    'sound': 'Sound',
+    'gadget': 'Gadget'
+  }
+  
+  const formatted = categoryMap[category?.toLowerCase()] || category?.charAt(0).toUpperCase() + category?.slice(1) || 'Category'
 
   useEffect(() => {
     fetchProducts()
@@ -89,7 +104,7 @@ const ProductCategory = () => {
                 <button 
                   onClick={() => handleAddToCart(product)}
                   disabled={product.stock === 0}
-                  className="w-full hover:bg-blue-700 font-bold py-2 px-4 rounded-lg transition duration-200 text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed" 
+                  className="w-full hover:opacity-90 font-bold py-2 px-4 rounded-lg transition duration-200 text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed" 
                   style={{ backgroundColor: '#284B63', color: '#FFFFFF' }}
                 >
                   {product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}

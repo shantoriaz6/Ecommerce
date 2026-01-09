@@ -23,9 +23,10 @@ const AdminSidebar = () => {
               to={item.path}
               className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition duration-200 ${
                 location.pathname === item.path
-                  ? 'bg-blue-600 text-white'
+                  ? 'text-white'
                   : 'text-gray-300 hover:bg-gray-700'
               }`}
+              style={location.pathname === item.path ? { backgroundColor: '#284B63' } : {}}
             >
               <span>{item.icon}</span>
               <span>{item.label}</span>

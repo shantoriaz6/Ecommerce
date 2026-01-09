@@ -37,7 +37,7 @@ const getProductById = asyncHandler(async (req, res) => {
 
 // Create product (Admin only)
 const createProduct = asyncHandler(async (req, res) => {
-  const { name, description, price, category, stock, brand } = req.body;
+  const { name, description, price, category, stock, brand, discount } = req.body;
 
   if (!name || !description || !price || !category) {
     throw new ApiError(400, "All required fields must be provided");
@@ -62,7 +62,8 @@ const createProduct = asyncHandler(async (req, res) => {
     category,
     image: imageUrl,
     stock: stock || 0,
-    brand: brand || ""
+    brand: brand || "",
+    discount: discount || 0
   });
 
   return res
@@ -73,7 +74,7 @@ const createProduct = asyncHandler(async (req, res) => {
 // Update product (Admin only)
 const updateProduct = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const { name, description, price, category, stock, brand, isActive } = req.body;
+  const { name, description, price, category, stock, brand, discount, isActive } = req.body;
 
   const product = await Product.findById(id);
 
@@ -97,6 +98,7 @@ const updateProduct = asyncHandler(async (req, res) => {
   if (category) product.category = category;
   if (stock !== undefined) product.stock = stock;
   if (brand !== undefined) product.brand = brand;
+  if (discount !== undefined) product.discount = discount;
   if (isActive !== undefined) product.isActive = isActive;
 
   await product.save();

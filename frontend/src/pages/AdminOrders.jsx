@@ -117,8 +117,8 @@ const AdminOrders = () => {
                   {order.status === 'Pending' && (
                     <button
                       onClick={() => updateOrderStatus(order._id, 'Confirmed')}
-                      className="px-6 py-2 text-white rounded-lg hover:bg-green-700 transition duration-200"
-                      style={{ backgroundColor: '#10B981' }}
+                      className="px-6 py-2 text-white rounded-lg hover:opacity-90 transition duration-200"
+                      style={{ backgroundColor: '#284B63' }}
                     >
                       Confirm Order
                     </button>

@@ -9,7 +9,7 @@ const AdminEditProducts = () => {
   const [selectedCategory, setSelectedCategory] = useState('All')
   const [loading, setLoading] = useState(true)
 
-  const categories = ['All', 'Phone', 'Laptop', 'AirPods', 'Charger', 'Printer', 'Camera', 'Monitor', 'Gaming', 'Sound', 'Gadget']
+  const categories = ['All', 'Phone', 'Laptop', 'AirPods', 'Headphone', 'Charger', 'Printer', 'Camera', 'Monitor', 'Gaming', 'Sound', 'Gadget', 'Offers', 'Hot Deals', 'Discount']
 
   useEffect(() => {
     fetchProducts()
@@ -17,11 +17,28 @@ const AdminEditProducts = () => {
 
   const fetchProducts = async () => {
     try {
-      const url = selectedCategory === 'All' 
-        ? '/products' 
-        : `/products?category=${selectedCategory}`
-      const response = await axiosInstance.get(url)
-      setProducts(response.data.data)
+      let url = '/products'
+      let fetchedProducts = []
+      
+      if (selectedCategory === 'All') {
+        const response = await axiosInstance.get(url)
+        fetchedProducts = response.data.data
+      } else if (selectedCategory === 'Offers' || selectedCategory === 'Discount') {
+        // Products with any discount (1% or more)
+        const response = await axiosInstance.get(url)
+        fetchedProducts = response.data.data.filter(product => product.discount && product.discount > 0)
+      } else if (selectedCategory === 'Hot Deals') {
+        // Products with 15% or more discount
+        const response = await axiosInstance.get(url)
+        fetchedProducts = response.data.data.filter(product => product.discount && product.discount >= 15)
+      } else {
+        // Regular category filter
+        url = `/products?category=${selectedCategory}`
+        const response = await axiosInstance.get(url)
+        fetchedProducts = response.data.data
+      }
+      
+      setProducts(fetchedProducts)
     } catch (err) {
       console.error('Error fetching products:', err)
     } finally {
@@ -127,6 +144,33 @@ const AdminEditProducts = () => {
                   />
                 </div>
               </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1" style={{ color: '#284B63' }}>Brand</label>
+                  <input
+                    type="text"
+                    name="brand"
+                    value={formData.brand || ''}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 border rounded-md"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1" style={{ color: '#284B63' }}>Discount (%)</label>
+                  <input
+                    type="number"
+                    name="discount"
+                    value={formData.discount || ''}
+                    onChange={handleChange}
+                    min="0"
+                    max="100"
+                    className="w-full px-3 py-2 border rounded-md"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    1%+ = Offers, 15%+ = Hot Deals
+                  </p>
+                </div>
+              </div>
               <div className="flex space-x-4">
                 <button
                   type="submit"
@@ -138,7 +182,8 @@ const AdminEditProducts = () => {
                 <button
                   type="button"
                   onClick={() => setSelectedProduct(null)}
-                  className="px-6 py-2 bg-gray-500 text-white font-semibold rounded-md"
+                  className="px-6 py-2 text-white font-semibold rounded-md hover:opacity-80 transition duration-200"
+                  style={{ backgroundColor: '#284B63', opacity: 0.7 }}
                 >
                   Cancel
                 </button>
@@ -149,9 +194,21 @@ const AdminEditProducts = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {products.map((product) => (
               <div key={product._id} className="bg-white p-4 rounded-lg shadow-md">
+                {product.image && (
+                  <div className="mb-3">
+                    <img 
+                      src={product.image} 
+                      alt={product.name} 
+                      className="w-full h-48 object-cover rounded-md"
+                    />
+                  </div>
+                )}
                 <h3 className="font-bold mb-2" style={{ color: '#284B63' }}>{product.name}</h3>
                 <p className="text-sm text-gray-600 mb-2">{product.category}</p>
                 <p className="font-bold mb-2" style={{ color: '#284B63' }}>${product.price}</p>
+                {product.discount > 0 && (
+                  <p className="text-sm text-green-600 mb-2">Discount: {product.discount}%</p>
+                )}
                 <button
                   onClick={() => handleEdit(product)}
                   className="w-full py-2 px-4 text-white font-semibold rounded-md"

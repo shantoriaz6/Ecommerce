@@ -10,6 +10,7 @@ const AdminAddProduct = () => {
     category: 'Phone',
     brand: '',
     stock: '',
+    discount: '',
     image: ''
   })
   const [imageFile, setImageFile] = useState(null)
@@ -17,7 +18,7 @@ const AdminAddProduct = () => {
   const [success, setSuccess] = useState('')
   const [error, setError] = useState('')
 
-  const categories = ['Phone', 'Laptop', 'AirPods', 'Charger', 'Printer', 'Camera', 'Monitor', 'Gaming', 'Sound', 'Gadget']
+  const categories = ['Phone', 'Laptop', 'AirPods', 'Headphone', 'Charger', 'Printer', 'Camera', 'Monitor', 'Gaming', 'Sound', 'Gadget']
 
   const handleChange = (e) => {
     setFormData({
@@ -55,6 +56,7 @@ const AdminAddProduct = () => {
       submitData.append('category', formData.category)
       submitData.append('brand', formData.brand)
       submitData.append('stock', formData.stock)
+      submitData.append('discount', formData.discount || 0)
       
       if (imageFile) {
         submitData.append('image', imageFile)
@@ -75,6 +77,7 @@ const AdminAddProduct = () => {
         category: 'Phone',
         brand: '',
         stock: '',
+        discount: '',
         image: ''
       })
       setImageFile(null)
@@ -195,6 +198,25 @@ const AdminAddProduct = () => {
                   onChange={handleChange}
                   className="w-full px-3 py-2 border rounded-md"
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1" style={{ color: '#284B63' }}>
+                  Discount (%)
+                </label>
+                <input
+                  type="number"
+                  name="discount"
+                  value={formData.discount}
+                  onChange={handleChange}
+                  min="0"
+                  max="100"
+                  placeholder="0"
+                  className="w-full px-3 py-2 border rounded-md"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Enter discount percentage (0-100). Products with 1%+ discount appear in Offers, 15%+ in Hot Deals
+                </p>
               </div>
             </div>
 

@@ -7,7 +7,7 @@ const AdminDeleteProducts = () => {
   const [selectedCategory, setSelectedCategory] = useState('All')
   const [loading, setLoading] = useState(true)
 
-  const categories = ['All', 'Phone', 'Laptop', 'AirPods', 'Charger', 'Printer', 'Camera', 'Monitor', 'Gaming', 'Sound', 'Gadget']
+  const categories = ['All', 'Phone', 'Laptop', 'AirPods', 'Headphone', 'Charger', 'Printer', 'Camera', 'Monitor', 'Gaming', 'Sound', 'Gadget', 'Offers', 'Hot Deals', 'Discount']
 
   useEffect(() => {
     fetchProducts()
@@ -15,11 +15,28 @@ const AdminDeleteProducts = () => {
 
   const fetchProducts = async () => {
     try {
-      const url = selectedCategory === 'All' 
-        ? '/products' 
-        : `/products?category=${selectedCategory}`
-      const response = await axiosInstance.get(url)
-      setProducts(response.data.data)
+      let url = '/products'
+      let fetchedProducts = []
+      
+      if (selectedCategory === 'All') {
+        const response = await axiosInstance.get(url)
+        fetchedProducts = response.data.data
+      } else if (selectedCategory === 'Offers' || selectedCategory === 'Discount') {
+        // Products with any discount (1% or more)
+        const response = await axiosInstance.get(url)
+        fetchedProducts = response.data.data.filter(product => product.discount && product.discount > 0)
+      } else if (selectedCategory === 'Hot Deals') {
+        // Products with 15% or more discount
+        const response = await axiosInstance.get(url)
+        fetchedProducts = response.data.data.filter(product => product.discount && product.discount >= 15)
+      } else {
+        // Regular category filter
+        url = `/products?category=${selectedCategory}`
+        const response = await axiosInstance.get(url)
+        fetchedProducts = response.data.data
+      }
+      
+      setProducts(fetchedProducts)
     } catch (err) {
       console.error('Error fetching products:', err)
     } finally {
@@ -84,7 +101,8 @@ const AdminDeleteProducts = () => {
                 <p className="font-bold mb-3" style={{ color: '#284B63' }}>${product.price}</p>
                 <button
                   onClick={() => handleDelete(product._id, product.name)}
-                  className="w-full py-2 px-4 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-md"
+                  className="w-full py-2 px-4 text-white font-semibold rounded-md hover:opacity-90 transition duration-200"
+                  style={{ backgroundColor: '#284B63' }}
                 >
                   Delete
                 </button>

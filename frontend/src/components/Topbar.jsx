@@ -2,13 +2,13 @@ import React from 'react'
 
 const Topbar = () => {
   return (
-    <div className="bg-white py-0 sm:py-1 sticky top-0 z-50 shadow-lg" style={{ color: '#284B63' }}>
+    <div className="bg-white py-2 sticky top-0 z-50 shadow-md" style={{ color: '#284B63' }}>
       <div className="container mx-auto px-4">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-0">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-0">
           {/* Logo/Title */}
-          <div className="flex items-center gap-2 sm:gap-3">
-            <img src="/logo.png" alt="Gadget World Logo" className="h-32 w-32 sm:h-40 sm:w-40 object-contain" />
-            <h1 className="text-xl sm:text-2xl font-bold">Gadget WORLD</h1>
+          <div className="flex items-center gap-2">
+            <img src="/logo.png" alt="Gadget World Logo" className="h-16 w-16 sm:h-20 sm:w-20 object-contain" />
+            <h1 className="text-lg sm:text-xl font-bold">Gadget WORLD</h1>
           </div>
 
           {/* Search Bar */}
@@ -17,7 +17,7 @@ const Topbar = () => {
               <input
                 type="text"
                 placeholder="Search products..."
-                className="w-full px-3 sm:px-4 py-2 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm sm:text-base border-2"
+                className="w-full px-3 sm:px-4 py-1.5 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm sm:text-base border-2"
                 style={{ borderColor: '#284B63', boxShadow: '0 10px 25px -5px rgba(40, 75, 99, 0.3), 0 8px 10px -6px rgba(40, 75, 99, 0.2)' }}
               />
               <button className="absolute right-2 top-1/2 transform -translate-y-1/2 px-2 sm:px-3 py-1 rounded text-xs sm:text-sm font-semibold text-white" style={{ backgroundColor: '#284B63' }}>

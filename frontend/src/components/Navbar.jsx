@@ -11,7 +11,7 @@ const Navbar = () => {
   const navigate = useNavigate()
   const location = useLocation()
 
-  const categories = ['Phone', 'Laptop', 'AirPods', 'Charger', 'Printer', 'Camera', 'Monitor', 'Gaming', 'Sound', 'Gadget']
+  const categories = ['Phone', 'Laptop', 'AirPods', 'Headphone', 'Charger', 'Printer', 'Camera', 'Monitor', 'Gaming', 'Sound', 'Gadget']
 
   useEffect(() => {
     // Check if user is logged in by checking for accessToken
@@ -46,73 +46,31 @@ const Navbar = () => {
             </Link>
 
             <Link 
-              to="/products/phone" 
+              to="/offers" 
               className="hover:text-blue-400 font-semibold transition duration-200"
             >
-              Phone
+              Offers
             </Link>
 
             <Link 
-              to="/products/laptop" 
+              to="/hot-deals" 
               className="hover:text-blue-400 font-semibold transition duration-200"
             >
-              Laptop
+              Hot Deals
             </Link>
 
             <Link 
-              to="/products/airpods" 
+              to="/discount" 
               className="hover:text-blue-400 font-semibold transition duration-200"
             >
-              AirPods
+              Discount
             </Link>
 
             <Link 
-              to="/products/charger" 
+              to="/about-us" 
               className="hover:text-blue-400 font-semibold transition duration-200"
             >
-              Charger
-            </Link>
-
-            <Link 
-              to="/products/printer" 
-              className="hover:text-blue-400 font-semibold transition duration-200"
-            >
-              Printer
-            </Link>
-
-            <Link 
-              to="/products/camera" 
-              className="hover:text-blue-400 font-semibold transition duration-200"
-            >
-              Camera
-            </Link>
-
-            <Link 
-              to="/products/monitor" 
-              className="hover:text-blue-400 font-semibold transition duration-200"
-            >
-              Monitor
-            </Link>
-
-            <Link 
-              to="/products/gaming" 
-              className="hover:text-blue-400 font-semibold transition duration-200"
-            >
-              Gaming
-            </Link>
-
-            <Link 
-              to="/products/sound" 
-              className="hover:text-blue-400 font-semibold transition duration-200"
-            >
-              Sound
-            </Link>
-
-            <Link 
-              to="/products/gadget" 
-              className="hover:text-blue-400 font-semibold transition duration-200"
-            >
-              Gadget
+              About Us
             </Link>
 
             {/* All Categories Dropdown */}
@@ -246,75 +204,49 @@ const Navbar = () => {
               Home
             </Link>
             <Link 
-              to="/products/phone" 
+              to="/offers" 
               className="block py-2 px-4 hover:bg-gray-700 rounded transition duration-200"
               onClick={() => setMobileMenuOpen(false)}
             >
-              Phone
+              Offers
             </Link>
             <Link 
-              to="/products/laptop" 
+              to="/hot-deals" 
               className="block py-2 px-4 hover:bg-gray-700 rounded transition duration-200"
               onClick={() => setMobileMenuOpen(false)}
             >
-              Laptop
+              Hot Deals
             </Link>
             <Link 
-              to="/products/airpods" 
+              to="/discount" 
               className="block py-2 px-4 hover:bg-gray-700 rounded transition duration-200"
               onClick={() => setMobileMenuOpen(false)}
             >
-              AirPods
+              Discount
             </Link>
             <Link 
-              to="/products/charger" 
+              to="/about-us" 
               className="block py-2 px-4 hover:bg-gray-700 rounded transition duration-200"
               onClick={() => setMobileMenuOpen(false)}
             >
-              Charger
+              About Us
             </Link>
-            <Link 
-              to="/products/printer" 
-              className="block py-2 px-4 hover:bg-gray-700 rounded transition duration-200"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Printer
-            </Link>
-            <Link 
-              to="/products/camera" 
-              className="block py-2 px-4 hover:bg-gray-700 rounded transition duration-200"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Camera
-            </Link>
-            <Link 
-              to="/products/monitor" 
-              className="block py-2 px-4 hover:bg-gray-700 rounded transition duration-200"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Monitor
-            </Link>
-            <Link 
-              to="/products/gaming" 
-              className="block py-2 px-4 hover:bg-gray-700 rounded transition duration-200"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Gaming
-            </Link>
-            <Link 
-              to="/products/sound" 
-              className="block py-2 px-4 hover:bg-gray-700 rounded transition duration-200"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Sound
-            </Link>
-            <Link 
-              to="/products/gadget" 
-              className="block py-2 px-4 hover:bg-gray-700 rounded transition duration-200"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Gadget
-            </Link>
+            
+            {/* All Categories Dropdown in Mobile */}
+            <div className="border-t border-gray-700 pt-2">
+              <p className="px-4 py-2 text-sm text-gray-400 font-semibold">All Categories</p>
+              {categories.map((category) => (
+                <Link
+                  key={category}
+                  to={`/products/${category.toLowerCase()}`}
+                  className="block py-2 px-6 hover:bg-gray-700 rounded transition duration-200 text-sm"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  {category}
+                </Link>
+              ))}
+            </div>
+
             <div className="border-t border-gray-700 mt-2 pt-2 space-y-2">
               <Link 
                 to="/cart" 

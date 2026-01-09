@@ -170,7 +170,7 @@ const Checkout = () => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full text-white font-bold py-3 px-6 rounded-lg hover:opacity-90 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                   style={{ backgroundColor: '#284B63' }}
                 >
                   {loading ? 'Placing Order...' : 'Place Order'}

@@ -6,10 +6,36 @@ const Home = () => {
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [currentSlide, setCurrentSlide] = useState(0)
   const { addToCart } = useCart()
+
+  const slides = [
+    {
+      image: '/header image/header1.jpg',
+      title: 'Welcome to Gadget WORLD',
+      subtitle: 'Discover the Latest Technology at Unbeatable Prices'
+    },
+    {
+      image: '/header image/header2.jpeg',
+      title: 'Premium Quality Products',
+      subtitle: 'Shop the Best Electronics and Accessories'
+    },
+    {
+      image: '/header image/header4.jpg',
+      title: 'Exclusive Deals & Offers',
+      subtitle: 'Save Big on Your Favorite Gadgets Today'
+    }
+  ]
 
   useEffect(() => {
     fetchProducts()
+    
+    // Auto-advance slider every 5 seconds
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % slides.length)
+    }, 5000)
+
+    return () => clearInterval(interval)
   }, [])
 
   const fetchProducts = async () => {
@@ -33,6 +59,18 @@ const Home = () => {
     } catch (err) {
       alert(err.message || 'Failed to add product to cart')
     }
+  }
+
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % slides.length)
+  }
+
+  const prevSlide = () => {
+    setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length)
+  }
+
+  const goToSlide = (index) => {
+    setCurrentSlide(index)
   }
 
   if (loading) {
@@ -65,6 +103,77 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Hero Slider */}
+      <div className="relative w-full h-[400px] md:h-[500px] lg:h-[600px] overflow-hidden">
+        {/* Slides */}
+        <div className="relative w-full h-full">
+          {slides.map((slide, index) => (
+            <div
+              key={index}
+              className={`absolute inset-0 transition-opacity duration-1000 ${
+                index === currentSlide ? 'opacity-100' : 'opacity-0'
+              }`}
+            >
+              <img
+                src={slide.image}
+                alt={slide.title}
+                className="w-full h-full object-cover"
+              />
+              {/* Overlay */}
+              <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
+                <div className="text-center text-white px-4">
+                  <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 animate-fade-in">
+                    {slide.title}
+                  </h1>
+                  <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-light animate-fade-in-delay">
+                    {slide.subtitle}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Previous Button */}
+        <button
+          onClick={prevSlide}
+          className="absolute left-4 top-1/2 -translate-y-1/2 bg-white bg-opacity-50 hover:bg-opacity-75 text-gray-800 p-2 sm:p-3 rounded-full transition duration-200 z-10"
+          aria-label="Previous slide"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+
+        {/* Next Button */}
+        <button
+          onClick={nextSlide}
+          className="absolute right-4 top-1/2 -translate-y-1/2 bg-white bg-opacity-50 hover:bg-opacity-75 text-gray-800 p-2 sm:p-3 rounded-full transition duration-200 z-10"
+          aria-label="Next slide"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+
+        {/* Dots Navigation */}
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex space-x-3 z-10">
+          {slides.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => goToSlide(index)}
+              className={`w-3 h-3 rounded-full transition duration-200 ${
+                index === currentSlide
+                  ? 'bg-white scale-125'
+                  : 'bg-white bg-opacity-50 hover:bg-opacity-75'
+              }`}
+              aria-label={`Go to slide ${index + 1}`}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* Products Section */}
       <div className="container mx-auto px-4 py-6 sm:py-8 lg:py-12">
         <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-center mb-6 sm:mb-8 lg:mb-12" style={{ color: '#284B63' }}>Featured Products</h1>
         
@@ -93,7 +202,7 @@ const Home = () => {
                 <button 
                   onClick={() => handleAddToCart(product)}
                   disabled={product.stock === 0}
-                  className="w-full hover:bg-blue-700 font-bold py-2 px-4 rounded-lg transition duration-200 text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed" 
+                  className="w-full hover:opacity-90 font-bold py-2 px-4 rounded-lg transition duration-200 text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed" 
                   style={{ backgroundColor: '#284B63', color: '#FFFFFF' }}
                 >
                   {product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}

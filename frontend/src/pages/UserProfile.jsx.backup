@@ -317,7 +317,9 @@ const UserProfile = () => {
                         ) : (
                           user?.fullName?.charAt(0).toUpperCase() || 'U'
                         )}
-                      </div>
+                      ) : (
+                        user?.fullName?.charAt(0).toUpperCase() || 'U'
+                      )}
                     </div>
                     <div>
                       <h3 className="text-xl font-bold" style={{ color: '#284B63' }}>{user?.fullName}</h3>
@@ -397,7 +399,7 @@ const UserProfile = () => {
                 <p className="text-gray-600 mb-4">No orders yet</p>
                 <button
                   onClick={() => navigate('/')}
-                  className="px-6 py-3 text-white rounded-lg hover:opacity-90 transition duration-200"
+                  className="px-6 py-3 text-white rounded-lg hover:bg-blue-700 transition duration-200"
                   style={{ backgroundColor: '#284B63' }}
                 >
                   Start Shopping

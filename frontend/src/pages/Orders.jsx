@@ -90,7 +90,7 @@ const Orders = () => {
             <p className="text-gray-600 mb-6">Start shopping to place your first order!</p>
             <button
               onClick={() => navigate('/')}
-              className="px-6 py-3 text-white rounded-lg hover:bg-blue-700 transition duration-200"
+              className="px-6 py-3 text-white rounded-lg hover:opacity-90 transition duration-200"
               style={{ backgroundColor: '#284B63' }}
             >
               Start Shopping
