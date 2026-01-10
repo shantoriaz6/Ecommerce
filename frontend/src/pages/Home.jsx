@@ -1,13 +1,19 @@
 import React, { useState, useEffect } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import axiosInstance from '../services/axios'
 import { useCart } from '../context/CartContext'
 
 const Home = () => {
   const [products, setProducts] = useState([])
+  const [filteredProducts, setFilteredProducts] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [currentSlide, setCurrentSlide] = useState(0)
+  const [searchParams] = useSearchParams()
+  const navigate = useNavigate()
   const { addToCart } = useCart()
+
+  const searchQuery = searchParams.get('search') || ''
 
   const slides = [
     {
@@ -37,6 +43,24 @@ const Home = () => {
 
     return () => clearInterval(interval)
   }, [])
+
+  useEffect(() => {
+    // Filter products based on search query
+    if (searchQuery) {
+      const filtered = products.filter(product => {
+        const searchLower = searchQuery.toLowerCase()
+        return (
+          product.name.toLowerCase().includes(searchLower) ||
+          product.category?.toLowerCase().includes(searchLower) ||
+          product.brand?.toLowerCase().includes(searchLower) ||
+          product.description?.toLowerCase().includes(searchLower)
+        )
+      })
+      setFilteredProducts(filtered)
+    } else {
+      setFilteredProducts(products)
+    }
+  }, [searchQuery, products])
 
   const fetchProducts = async () => {
     try {
@@ -175,15 +199,55 @@ const Home = () => {
 
       {/* Products Section */}
       <div className="container mx-auto px-4 py-6 sm:py-8 lg:py-12">
-        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-center mb-6 sm:mb-8 lg:mb-12" style={{ color: '#284B63' }}>Featured Products</h1>
+        {/* Search Results Header */}
+        {searchQuery && (
+          <div className="mb-6">
+            <h2 className="text-xl sm:text-2xl font-bold mb-2" style={{ color: '#284B63' }}>
+              Search Results for "{searchQuery}"
+            </h2>
+            <p className="text-gray-600">
+              {filteredProducts.length} {filteredProducts.length === 1 ? 'product' : 'products'} found
+            </p>
+            <button
+              onClick={() => navigate('/')}
+              className="mt-2 text-sm text-blue-600 hover:underline flex items-center gap-1"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              Clear search
+            </button>
+          </div>
+        )}
+
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-center mb-6 sm:mb-8 lg:mb-12" style={{ color: '#284B63' }}>
+          {searchQuery ? 'Search Results' : 'Featured Products'}
+        </h1>
         
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-          {products.length === 0 ? (
+          {filteredProducts.length === 0 ? (
             <div className="col-span-full text-center py-12">
-              <p style={{ color: '#284B63' }}>No products available</p>
+              {searchQuery ? (
+                <div>
+                  <svg className="w-16 h-16 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  <p className="text-xl font-semibold mb-2" style={{ color: '#284B63' }}>No products found</p>
+                  <p className="text-gray-600">Try searching with different keywords</p>
+                  <button
+                    onClick={() => navigate('/')}
+                    className="mt-4 px-6 py-2 text-white rounded-lg hover:opacity-90 transition-opacity"
+                    style={{ backgroundColor: '#284B63' }}
+                  >
+                    View All Products
+                  </button>
+                </div>
+              ) : (
+                <p style={{ color: '#284B63' }}>No products available</p>
+              )}
             </div>
           ) : (
-            products.map((product) => (
+            filteredProducts.map((product) => (
               <div key={product._id} className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 p-4 sm:p-6">
                 <div className="h-40 sm:h-48 bg-gray-200 rounded-lg mb-3 sm:mb-4 flex items-center justify-center overflow-hidden">
                   {product.image ? (
