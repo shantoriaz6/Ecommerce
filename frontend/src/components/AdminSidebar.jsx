@@ -1,20 +1,34 @@
 import React from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 
 const AdminSidebar = () => {
   const location = useLocation()
+  const navigate = useNavigate()
 
   const menuItems = [
     { path: '/admin/dashboard', label: 'Dashboard', icon: '📊' },
     { path: '/admin/orders', label: 'User Orders', icon: '📦' },
+    { path: '/admin/inventory', label: 'Inventory Stats', icon: '📈' },
     { path: '/admin/add-product', label: 'Add Product', icon: '➕' },
     { path: '/admin/edit-products', label: 'Edit Products', icon: '✏️' },
     { path: '/admin/delete-products', label: 'Delete Products', icon: '🗑️' },
   ]
 
+  const handleLogout = () => {
+    // Clear admin tokens
+    localStorage.removeItem('adminAccessToken')
+    localStorage.removeItem('adminRefreshToken')
+    
+    // Dispatch storage event to notify other components
+    window.dispatchEvent(new Event('storage'))
+    
+    // Redirect to admin login
+    navigate('/admin/login')
+  }
+
   return (
-    <div className="w-64 min-h-screen shadow-lg" style={{ backgroundColor: '#353535' }}>
-      <div className="p-6">
+    <div className="w-64 min-h-screen shadow-lg flex flex-col" style={{ backgroundColor: '#353535' }}>
+      <div className="p-6 flex-1">
         <h2 className="text-xl font-bold text-white mb-6">Admin Panel</h2>
         <nav className="space-y-2">
           {menuItems.map((item) => (
@@ -33,6 +47,17 @@ const AdminSidebar = () => {
             </Link>
           ))}
         </nav>
+      </div>
+      
+      {/* Logout button at the bottom */}
+      <div className="p-6 border-t border-gray-700">
+        <button
+          onClick={handleLogout}
+          className="flex items-center space-x-3 px-4 py-3 rounded-lg w-full text-gray-300 hover:bg-red-600 hover:text-white transition duration-200"
+        >
+          <span>🚪</span>
+          <span>Logout</span>
+        </button>
       </div>
     </div>
   )

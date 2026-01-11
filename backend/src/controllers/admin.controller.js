@@ -2,6 +2,7 @@ import { Admin } from "../models/admin.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+import jwt from "jsonwebtoken";
 
 // Generate tokens
 const generateAccessAndRefreshTokens = async (adminId) => {
@@ -154,4 +155,55 @@ const logoutAdmin = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, {}, "Admin logged out"));
 });
 
-export { registerAdmin, loginAdmin, logoutAdmin };
+// Refresh admin access token
+const refreshAdminToken = asyncHandler(async (req, res) => {
+  const incomingRefreshToken = req.cookies?.refreshToken || req.body?.refreshToken;
+  
+  if (!incomingRefreshToken) {
+    throw new ApiError(401, "Refresh token missing");
+  }
+
+  try {
+    const decoded = jwt.verify(incomingRefreshToken, process.env.REFRESH_TOKEN_SECRET);
+    
+    // Verify it's an admin token
+    if (decoded.role !== 'admin') {
+      throw new ApiError(403, "Invalid token type");
+    }
+    
+    const admin = await Admin.findById(decoded._id);
+    
+    if (!admin) {
+      throw new ApiError(401, "Invalid refresh token");
+    }
+
+    if (admin.refreshToken !== incomingRefreshToken) {
+      throw new ApiError(401, "Refresh token is expired or revoked");
+    }
+
+    // Generate new tokens
+    const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(admin._id);
+    const safeAdmin = await Admin.findById(admin._id).select("-password -refreshToken");
+
+    const options = {
+      httpOnly: true,
+      secure: true
+    };
+
+    return res
+      .status(200)
+      .cookie("accessToken", accessToken, options)
+      .cookie("refreshToken", refreshToken, options)
+      .json(
+        new ApiResponse(
+          200,
+          { admin: safeAdmin, accessToken, refreshToken },
+          "Access token refreshed"
+        )
+      );
+  } catch (error) {
+    throw new ApiError(401, error?.message || "Invalid or expired refresh token");
+  }
+});
+
+export { registerAdmin, loginAdmin, logoutAdmin, refreshAdminToken };

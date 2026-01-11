@@ -13,15 +13,20 @@ const axiosInstance = axios.create({
 // Request interceptor - Add token to headers if available
 axiosInstance.interceptors.request.use(
   (config) => {
-    // Only add token for routes that need authentication
-    const publicRoutes = ['/products', '/users/login', '/users/register'];
-    const isPublicRoute = publicRoutes.some(route => config.url?.startsWith(route));
+    // Check if it's an admin route
+    const isAdminRoute = config.url?.startsWith('/admin') || 
+                         config.url?.startsWith('/orders') || 
+                         (config.url?.startsWith('/products') && config.method !== 'get');
     
-    if (!isPublicRoute) {
-      const token = localStorage.getItem('accessToken');
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
+    // Use appropriate token
+    const token = isAdminRoute 
+      ? localStorage.getItem('adminAccessToken')
+      : localStorage.getItem('accessToken');
+    
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    } else if (isAdminRoute) {
+      console.warn('⚠️ Admin route accessed without token - redirecting to login');
     }
     return config;
   },
@@ -42,27 +47,90 @@ axiosInstance.interceptors.response.use(
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
+      console.log('🔄 Token expired, attempting refresh...');
+
       try {
+        // Check if it's an admin route
+        const isAdminRoute = originalRequest.url?.startsWith('/admin') || 
+                             originalRequest.url?.startsWith('/orders') || 
+                             (originalRequest.url?.startsWith('/products') && originalRequest.method !== 'get');
+        
         // Attempt to refresh token
-        const refreshToken = localStorage.getItem('refreshToken');
-        if (refreshToken) {
+        const refreshToken = isAdminRoute 
+          ? localStorage.getItem('adminRefreshToken')
+          : localStorage.getItem('refreshToken');
+          
+        if (!refreshToken) {
+          console.warn('⚠️ No refresh token found, clearing tokens');
+          // No refresh token - clear any stale access token and return error
+          if (isAdminRoute) {
+            localStorage.removeItem('adminAccessToken');
+          } else {
+            localStorage.removeItem('accessToken');
+          }
+          window.dispatchEvent(new Event('storage'));
+          return Promise.reject(error);
+        }
+
+        const endpoint = isAdminRoute ? '/admin/refresh-token' : '/users/refresh-token';
+        
+        console.log(`🔄 Refreshing token via ${endpoint}...`);
+        
+        try {
           const response = await axios.post(
-            `${originalRequest.baseURL}/users/refresh-token`,
+            `${originalRequest.baseURL}${endpoint}`,
             { refreshToken }
           );
 
-          const { accessToken } = response.data.data;
-          localStorage.setItem('accessToken', accessToken);
+          const { accessToken, refreshToken: newRefreshToken } = response.data.data;
+          
+          console.log('✅ Token refresh successful');
+          
+          // Store new tokens (both access and refresh)
+          if (isAdminRoute) {
+            localStorage.setItem('adminAccessToken', accessToken);
+            if (newRefreshToken) {
+              localStorage.setItem('adminRefreshToken', newRefreshToken);
+            }
+          } else {
+            localStorage.setItem('accessToken', accessToken);
+            if (newRefreshToken) {
+              localStorage.setItem('refreshToken', newRefreshToken);
+            }
+          }
 
           // Retry original request with new token
           originalRequest.headers.Authorization = `Bearer ${accessToken}`;
           return axiosInstance(originalRequest);
+        } catch (refreshError) {
+          console.error('❌ Token refresh failed:', refreshError.message);
+          // Refresh token is invalid - clear both tokens
+          if (isAdminRoute) {
+            localStorage.removeItem('adminAccessToken');
+            localStorage.removeItem('adminRefreshToken');
+          } else {
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
+          }
+          window.dispatchEvent(new Event('storage'));
+          return Promise.reject(error);
         }
       } catch (refreshError) {
-        // Refresh failed - logout user
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-        window.location.href = '/login';
+        console.error('❌ Token refresh error:', refreshError);
+        // Refresh failed - only clear tokens, don't force redirect
+        // This allows components to handle the error gracefully
+        const isAdminRoute = originalRequest.url?.startsWith('/admin') || 
+                             originalRequest.url?.startsWith('/orders') || 
+                             (originalRequest.url?.startsWith('/products') && originalRequest.method !== 'get');
+        
+        if (isAdminRoute) {
+          localStorage.removeItem('adminAccessToken');
+          localStorage.removeItem('adminRefreshToken');
+        } else {
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('refreshToken');
+        }
+        window.dispatchEvent(new Event('storage'));
         return Promise.reject(refreshError);
       }
     }

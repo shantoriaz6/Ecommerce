@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import axiosInstance from '../services/axios'
 
 const Orders = () => {
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false)
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
 
   useEffect(() => {
     const token = localStorage.getItem('accessToken')
@@ -14,8 +16,18 @@ const Orders = () => {
       navigate('/login')
       return
     }
+    
+    // Check for payment success parameter
+    const paymentStatus = searchParams.get('payment')
+    if (paymentStatus === 'success') {
+      setShowSuccessMessage(true)
+      // Auto-hide message after 8 seconds
+      setTimeout(() => setShowSuccessMessage(false), 8000)
+    }
+    
     fetchOrders()
-  }, [navigate])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const fetchOrders = async () => {
     try {
@@ -42,6 +54,19 @@ const Orders = () => {
       case 'Delivered':
         return 'bg-green-100 text-green-800 border border-green-200'
       case 'Cancelled':
+        return 'bg-red-100 text-red-800 border border-red-200'
+      default:
+        return 'bg-gray-100 text-gray-800 border border-gray-200'
+    }
+  }
+
+  const getPaymentStatusColor = (status) => {
+    switch (status) {
+      case 'Paid':
+        return 'bg-green-100 text-green-800 border border-green-200'
+      case 'Pending':
+        return 'bg-yellow-100 text-yellow-800 border border-yellow-200'
+      case 'Failed':
         return 'bg-red-100 text-red-800 border border-red-200'
       default:
         return 'bg-gray-100 text-gray-800 border border-gray-200'
@@ -105,9 +130,12 @@ const Orders = () => {
           <p className="text-red-600 mb-4">{error}</p>
           <button 
             onClick={fetchOrders}
-            className="px-4 py-2 rounded-lg text-white"
+            className="px-6 py-3 rounded-lg text-white font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 hover:opacity-90 flex items-center gap-2 mx-auto"
             style={{ backgroundColor: '#284B63' }}
           >
+            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
+            </svg>
             Retry
           </button>
         </div>
@@ -118,9 +146,54 @@ const Orders = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8">
       <div className="container mx-auto px-4 max-w-6xl">
+        {/* Payment Success Message */}
+        {showSuccessMessage && (
+          <div className="mb-6 bg-green-50 border-2 border-green-500 rounded-xl p-6 shadow-lg animate-bounce-in">
+            <div className="flex items-start">
+              <div className="flex-shrink-0">
+                <svg className="w-8 h-8 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-4 flex-1">
+                <h3 className="text-lg font-bold text-green-800 mb-1">🎉 Payment Successful!</h3>
+                <p className="text-green-700 mb-2">Your payment has been processed successfully. Your order is now confirmed and will be processed shortly.</p>
+                <p className="text-sm text-green-600">Thank you for shopping with us!</p>
+              </div>
+              <button
+                onClick={() => setShowSuccessMessage(false)}
+                className="flex-shrink-0 ml-4 p-2 rounded-lg bg-green-100 hover:bg-green-200 text-green-600 hover:text-green-800 transition-all duration-200 shadow-sm hover:shadow-md transform hover:scale-105"
+                aria-label="Close message"
+              >
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        )}
+
         <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2" style={{ color: '#284B63' }}>My Orders</h1>
-          <p className="text-gray-600">View and track all your orders</p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-4xl font-bold mb-2" style={{ color: '#284B63' }}>My Orders</h1>
+              <p className="text-gray-600">{searchParams.get('id') ? 'Order Details' : 'View and track all your orders'}</p>
+            </div>
+            {searchParams.get('id') && (
+              <button
+                onClick={() => {
+                  setSearchParams({})
+                }}
+                className="px-6 py-3 rounded-lg text-white font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 hover:opacity-90 flex items-center gap-2"
+                style={{ backgroundColor: '#284B63' }}
+              >
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
+                </svg>
+                View All Orders
+              </button>
+            )}
+          </div>
         </div>
 
         {orders.length === 0 ? (
@@ -142,7 +215,10 @@ const Orders = () => {
           </div>
         ) : (
           <div className="space-y-6">
-            {orders.map((order) => (
+            {orders.filter(order => {
+              const orderId = searchParams.get('id')
+              return orderId ? order._id === orderId : true
+            }).map((order) => (
               <div key={order._id} className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300" style={{ borderColor: '#D9D9D9', borderWidth: '2px' }}>
                 {/* Order Header */}
                 <div className="px-6 py-5" style={{ borderBottom: '2px solid #D9D9D9', background: 'linear-gradient(to right, #f8fafc, #f1f5f9)' }}>
@@ -188,14 +264,20 @@ const Orders = () => {
                         </svg>
                         <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Total</p>
                       </div>
-                      <p className="text-2xl font-bold" style={{ color: '#284B63' }}>${order.totalAmount.toFixed(2)}</p>
+                      <p className="text-2xl font-bold" style={{ color: '#284B63' }}>{order.totalAmount.toFixed(2)}৳</p>
                       <p className="text-xs text-gray-500">{order.items.length} item(s)</p>
                     </div>
                     
-                    <div className="flex items-start">
+                    <div className="flex items-start gap-3">
                       <span className={`px-4 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 shadow-sm ${getStatusColor(order.status)}`}>
                         {getStatusIcon(order.status)}
                         {order.status}
+                      </span>
+                      <span className={`px-4 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 shadow-sm ${getPaymentStatusColor(order.paymentStatus)}`}>
+                        {order.paymentStatus === 'Paid' && '✓'}
+                        {order.paymentStatus === 'Pending' && '⏳'}
+                        {order.paymentStatus === 'Failed' && '✗'}
+                        {order.paymentStatus}
                       </span>
                     </div>
                   </div>
@@ -236,14 +318,14 @@ const Orders = () => {
                               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v3.586L7.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 10.586V7z" clipRule="evenodd" />
                               </svg>
-                              ${item.price.toFixed(2)} each
+                              {item.price.toFixed(2)}৳ each
                             </span>
                           </div>
                         </div>
                         <div className="text-right flex-shrink-0">
                           <p className="text-xs text-gray-500 mb-1">Subtotal</p>
                           <p className="text-xl font-bold" style={{ color: '#284B63' }}>
-                            ${(item.price * item.quantity).toFixed(2)}
+                            {(item.price * item.quantity).toFixed(2)}৳
                           </p>
                         </div>
                       </div>

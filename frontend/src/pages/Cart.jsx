@@ -1,5 +1,6 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
+import toast from 'react-hot-toast'
 import { useCart } from '../context/CartContext'
 
 const Cart = () => {
@@ -11,7 +12,7 @@ const Cart = () => {
     try {
       await updateCartItem(itemId, newQuantity)
     } catch (err) {
-      alert(err.message || 'Failed to update cart')
+      toast.error(err.message || 'Failed to update cart')
     }
   }
 
@@ -19,7 +20,7 @@ const Cart = () => {
     try {
       await removeFromCart(itemId)
     } catch (err) {
-      alert(err.message || 'Failed to remove item')
+      toast.error(err.message || 'Failed to remove item')
     }
   }
 
@@ -32,7 +33,7 @@ const Cart = () => {
 
   const handleCheckout = () => {
     if (cartCount === 0) {
-      alert('Your cart is empty')
+      toast.warning('Your cart is empty')
       return
     }
     navigate('/checkout')
@@ -91,7 +92,7 @@ const Cart = () => {
                     {item.product.brand && (
                       <p className="text-gray-500 text-sm mb-2">Brand: {item.product.brand}</p>
                     )}
-                    <p className="text-lg font-semibold" style={{ color: '#284B63' }}>${item.product.price}</p>
+                    <p className="text-lg font-semibold" style={{ color: '#284B63' }}>{item.product.price}৳</p>
                   </div>
 
                   {/* Quantity Controls */}
@@ -125,7 +126,7 @@ const Cart = () => {
                     </div>
 
                     <p className="text-lg font-bold mt-4" style={{ color: '#284B63' }}>
-                      ${(item.product.price * item.quantity).toFixed(2)}
+                      {(item.product.price * item.quantity).toFixed(2)}৳
                     </p>
                   </div>
                 </div>
@@ -140,7 +141,7 @@ const Cart = () => {
                 <div className="space-y-3 mb-6">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Items ({cartCount})</span>
-                    <span style={{ color: '#284B63' }}>${calculateTotal()}</span>
+                    <span style={{ color: '#284B63' }}>{calculateTotal()}৳</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Shipping</span>
@@ -148,7 +149,7 @@ const Cart = () => {
                   </div>
                   <div className="border-t pt-3 flex justify-between text-lg font-bold">
                     <span style={{ color: '#284B63' }}>Total</span>
-                    <span style={{ color: '#284B63' }}>${calculateTotal()}</span>
+                    <span style={{ color: '#284B63' }}>{calculateTotal()}৳</span>
                   </div>
                 </div>
 

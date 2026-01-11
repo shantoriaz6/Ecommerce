@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import AdminSidebar from '../components/AdminSidebar'
 import axiosInstance from '../services/axios'
 
 const AdminDashboard = () => {
+  const navigate = useNavigate()
   const [stats, setStats] = useState({
     totalProducts: 0,
     totalOrders: 0,
@@ -10,17 +12,23 @@ const AdminDashboard = () => {
   })
 
   useEffect(() => {
+    // Check admin authentication
+    const adminToken = localStorage.getItem('adminAccessToken')
+    if (!adminToken) {
+      console.warn('⚠️ Admin not authenticated, redirecting to login')
+      navigate('/admin/login')
+      return
+    }
+    
     fetchStats()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const fetchStats = async () => {
     try {
-      const token = localStorage.getItem('adminAccessToken')
       const [productsRes, ordersRes] = await Promise.all([
         axiosInstance.get('/products'),
-        axiosInstance.get('/orders/all', {
-          headers: { Authorization: `Bearer ${token}` }
-        })
+        axiosInstance.get('/orders/all')
       ])
 
       const orders = ordersRes.data.data

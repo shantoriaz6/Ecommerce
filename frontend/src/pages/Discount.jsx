@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import toast from 'react-hot-toast'
 import axiosInstance from '../services/axios'
 import { useCart } from '../context/CartContext'
 
@@ -12,11 +13,11 @@ const Discount = () => {
 
   const handleAddToCart = async (e, product) => {
     e.stopPropagation()
-    try {
-      await addToCart(product._id)
-      alert('Product added to cart!')
-    } catch (err) {
-      alert(err.message || 'Failed to add product to cart')
+    const result = await addToCart(product._id)
+    if (result.success) {
+      toast.success('Product added to cart!')
+    } else {
+      toast.error(result.message || 'Failed to add product to cart')
     }
   }
 
@@ -180,12 +181,12 @@ const Discount = () => {
                     <p className="text-sm text-gray-600 mb-3 line-clamp-2">{product.description}</p>
 
                     <div className="mb-3">
-                      <p className="text-sm text-gray-500 line-through">${product.price}</p>
+                      <p className="text-sm text-gray-500 line-through">{product.price}৳</p>
                       <p className="text-xl font-bold text-green-600">
-                        ${(product.price * (1 - product.discount / 100)).toFixed(2)}
+                        {(product.price * (1 - product.discount / 100)).toFixed(2)}৳
                       </p>
                       <p className="text-xs text-gray-600 mt-1">
-                        You save: ${(product.price * (product.discount / 100)).toFixed(2)}
+                        You save: {(product.price * (product.discount / 100)).toFixed(2)}৳
                       </p>
                     </div>
 

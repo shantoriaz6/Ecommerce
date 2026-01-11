@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
+import toast from 'react-hot-toast'
 import axiosInstance from '../services/axios'
 import { useCart } from '../context/CartContext'
 
@@ -77,11 +78,11 @@ const Home = () => {
   }
 
   const handleAddToCart = async (product) => {
-    try {
-      await addToCart(product._id)
-      alert('Product added to cart!')
-    } catch (err) {
-      alert(err.message || 'Failed to add product to cart')
+    const result = await addToCart(product._id)
+    if (result.success) {
+      toast.success('Product added to cart!')
+    } else {
+      toast.error(result.message || 'Failed to add product to cart')
     }
   }
 
@@ -261,7 +262,7 @@ const Home = () => {
                 {product.brand && (
                   <p className="text-xs sm:text-sm mb-2 text-gray-500">Brand: {product.brand}</p>
                 )}
-                <p className="text-lg sm:text-xl font-bold mb-3 sm:mb-4" style={{ color: '#284B63' }}>${product.price}</p>
+                <p className="text-lg sm:text-xl font-bold mb-3 sm:mb-4" style={{ color: '#284B63' }}>{product.price}৳</p>
                 <p className="text-xs sm:text-sm mb-3 text-gray-600">Stock: {product.stock}</p>
                 <button 
                   onClick={() => handleAddToCart(product)}

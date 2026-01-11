@@ -15,15 +15,30 @@ const Navbar = () => {
 
   useEffect(() => {
     // Check if user is logged in by checking for accessToken
-    const token = localStorage.getItem('accessToken')
-    setIsLoggedIn(!!token)
-  }, [location])
+    const checkAuth = () => {
+      const token = localStorage.getItem('accessToken')
+      setIsLoggedIn(!!token)
+    }
+    
+    checkAuth()
+    
+    // Listen for storage events from other tabs/windows
+    window.addEventListener('storage', checkAuth)
+    
+    return () => {
+      window.removeEventListener('storage', checkAuth)
+    }
+  }, [])
 
   const handleAuthClick = () => {
     if (isLoggedIn) {
       // Logout
       localStorage.removeItem('accessToken')
       localStorage.removeItem('refreshToken')
+      
+      // Dispatch custom event to notify other components
+      window.dispatchEvent(new Event('storage'))
+      
       setIsLoggedIn(false)
       navigate('/')
     } else {

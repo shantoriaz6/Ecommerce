@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import toast from 'react-hot-toast'
 import axiosInstance from '../services/axios'
 
 const UserProfile = () => {
@@ -25,7 +26,8 @@ const UserProfile = () => {
     }
     fetchUserProfile()
     fetchUserOrders()
-  }, [navigate])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const fetchUserProfile = async () => {
     try {
@@ -94,9 +96,9 @@ const UserProfile = () => {
       setEditing(false)
       setAvatarFile(null)
       setAvatarPreview(null)
-      alert('Profile updated successfully!')
+      toast.success('Profile updated successfully!')
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to update profile')
+      toast.error(err.response?.data?.message || 'Failed to update profile')
     }
   }
 
@@ -418,10 +420,10 @@ const UserProfile = () => {
                         <p className="text-sm text-gray-600 mb-1">
                           {order.items.length} item(s) • Ordered on {new Date(order.createdAt).toLocaleDateString()}
                         </p>
-                        <p className="text-lg font-bold" style={{ color: '#284B63' }}>${order.totalAmount.toFixed(2)}</p>
+                        <p className="text-lg font-bold" style={{ color: '#284B63' }}>{order.totalAmount.toFixed(2)}৳</p>
                       </div>
                       <button
-                        onClick={() => navigate('/orders')}
+                        onClick={() => navigate(`/orders?id=${order._id}`)}
                         className="px-4 py-2 border-2 rounded-lg hover:bg-gray-100 transition duration-200 text-sm"
                         style={{ borderColor: '#284B63', color: '#284B63' }}
                       >

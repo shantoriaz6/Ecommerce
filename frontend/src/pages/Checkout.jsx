@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import toast from 'react-hot-toast'
 import { useCart } from '../context/CartContext'
 import axiosInstance from '../services/axios'
 
@@ -7,6 +8,7 @@ const Checkout = () => {
   const { cart, cartCount, clearCart } = useCart()
   const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
+  const [paymentMethod, setPaymentMethod] = useState('cod') // 'cod' or 'sslcommerz'
   const [formData, setFormData] = useState({
     shippingAddress: '',
     city: '',
@@ -32,16 +34,30 @@ const Checkout = () => {
     e.preventDefault()
 
     if (cartCount === 0) {
-      alert('Your cart is empty')
+      toast.warning('Your cart is empty')
       return
     }
 
     // Validate form
     if (!formData.shippingAddress || !formData.city || !formData.postalCode || !formData.phone) {
-      alert('Please fill in all fields')
+      toast.warning('Please fill in all fields')
       return
     }
 
+    // If SSL Commerz is selected, redirect to payment page with form data
+    if (paymentMethod === 'sslcommerz') {
+      // Store form data and navigate to payment page
+      navigate('/payment', {
+        state: {
+          shippingInfo: formData,
+          cart: cart,
+          totalAmount: calculateTotal()
+        }
+      })
+      return
+    }
+
+    // Handle Cash on Delivery
     try {
       setLoading(true)
 
@@ -56,7 +72,8 @@ const Checkout = () => {
         items: orderItems,
         totalAmount: parseFloat(calculateTotal()),
         shippingAddress: `${formData.shippingAddress}, ${formData.city}, ${formData.postalCode}`,
-        phone: formData.phone
+        phone: formData.phone,
+        paymentMethod: 'Cash on Delivery'
       }
 
       const response = await axiosInstance.post('/orders', orderData)
@@ -64,12 +81,12 @@ const Checkout = () => {
       if (response.data.success) {
         // Clear the cart after successful order
         await clearCart()
-        alert('Order placed successfully! You will receive confirmation once admin approves.')
+        toast.success('Order placed successfully! You will receive confirmation once admin approves.')
         navigate('/orders')
       }
     } catch (err) {
       console.error('Error placing order:', err)
-      alert(err.response?.data?.message || 'Failed to place order. Please try again.')
+      toast.error(err.response?.data?.message || 'Failed to place order. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -167,13 +184,86 @@ const Checkout = () => {
                   />
                 </div>
 
+                {/* Payment Method Selection */}
+                <div className="border-t pt-6 mt-6">
+                  <label className="block text-lg font-semibold mb-4" style={{ color: '#284B63' }}>
+                    Payment Method *
+                  </label>
+                  
+                  <div className="space-y-3">
+                    {/* Cash on Delivery Option */}
+                    <div
+                      onClick={() => setPaymentMethod('cod')}
+                      className={`border-2 rounded-lg p-4 cursor-pointer transition duration-200 ${
+                        paymentMethod === 'cod'
+                          ? 'border-blue-500 bg-blue-50'
+                          : 'border-gray-300 hover:border-gray-400'
+                      }`}
+                      style={paymentMethod === 'cod' ? { borderColor: '#284B63', backgroundColor: '#f0f4f8' } : {}}
+                    >
+                      <div className="flex items-center">
+                        <input
+                          type="radio"
+                          id="cod"
+                          name="paymentMethod"
+                          value="cod"
+                          checked={paymentMethod === 'cod'}
+                          onChange={(e) => setPaymentMethod(e.target.value)}
+                          className="w-5 h-5 mr-3"
+                          style={{ accentColor: '#284B63' }}
+                        />
+                        <div className="flex-1">
+                          <label htmlFor="cod" className="font-semibold cursor-pointer" style={{ color: '#284B63' }}>
+                            💵 Cash on Delivery
+                          </label>
+                          <p className="text-sm text-gray-600 mt-1">Pay with cash when your order is delivered</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* SSL Commerz Option */}
+                    <div
+                      onClick={() => setPaymentMethod('sslcommerz')}
+                      className={`border-2 rounded-lg p-4 cursor-pointer transition duration-200 ${
+                        paymentMethod === 'sslcommerz'
+                          ? 'border-blue-500 bg-blue-50'
+                          : 'border-gray-300 hover:border-gray-400'
+                      }`}
+                      style={paymentMethod === 'sslcommerz' ? { borderColor: '#284B63', backgroundColor: '#f0f4f8' } : {}}
+                    >
+                      <div className="flex items-center">
+                        <input
+                          type="radio"
+                          id="sslcommerz"
+                          name="paymentMethod"
+                          value="sslcommerz"
+                          checked={paymentMethod === 'sslcommerz'}
+                          onChange={(e) => setPaymentMethod(e.target.value)}
+                          className="w-5 h-5 mr-3"
+                          style={{ accentColor: '#284B63' }}
+                        />
+                        <div className="flex-1">
+                          <label htmlFor="sslcommerz" className="font-semibold cursor-pointer" style={{ color: '#284B63' }}>
+                            💳 SSL Commerz
+                          </label>
+                          <p className="text-sm text-gray-600 mt-1">Pay securely online with credit/debit card, mobile banking, or internet banking</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 <button
                   type="submit"
                   disabled={loading}
                   className="w-full text-white font-bold py-3 px-6 rounded-lg hover:opacity-90 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                   style={{ backgroundColor: '#284B63' }}
                 >
-                  {loading ? 'Placing Order...' : 'Place Order'}
+                  {loading 
+                    ? 'Processing...' 
+                    : paymentMethod === 'sslcommerz' 
+                      ? '🔒 Proceed to Payment' 
+                      : '📦 Place Order'}
                 </button>
               </form>
             </div>
@@ -192,7 +282,7 @@ const Checkout = () => {
                       <p className="text-gray-600">Qty: {item.quantity}</p>
                     </div>
                     <p className="font-semibold" style={{ color: '#284B63' }}>
-                      ${(item.product.price * item.quantity).toFixed(2)}
+                      {(item.product.price * item.quantity).toFixed(2)}৳
                     </p>
                   </div>
                 ))}
@@ -201,7 +291,7 @@ const Checkout = () => {
               <div className="border-t pt-4 space-y-3">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Subtotal</span>
-                  <span style={{ color: '#284B63' }}>${calculateTotal()}</span>
+                  <span style={{ color: '#284B63' }}>{calculateTotal()}৳</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Shipping</span>
@@ -209,7 +299,7 @@ const Checkout = () => {
                 </div>
                 <div className="border-t pt-3 flex justify-between text-lg font-bold">
                   <span style={{ color: '#284B63' }}>Total</span>
-                  <span style={{ color: '#284B63' }}>${calculateTotal()}</span>
+                  <span style={{ color: '#284B63' }}>{calculateTotal()}৳</span>
                 </div>
               </div>
             </div>

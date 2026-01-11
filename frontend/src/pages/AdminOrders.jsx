@@ -1,21 +1,30 @@
 import React, { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
+import toast from 'react-hot-toast'
 import AdminSidebar from '../components/AdminSidebar'
 import axiosInstance from '../services/axios'
 
 const AdminOrders = () => {
+  const navigate = useNavigate()
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    // Check admin authentication
+    const adminToken = localStorage.getItem('adminAccessToken')
+    if (!adminToken) {
+      console.warn('⚠️ Admin not authenticated, redirecting to login')
+      navigate('/admin/login')
+      return
+    }
+    
     fetchOrders()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const fetchOrders = async () => {
     try {
-      const token = localStorage.getItem('adminAccessToken')
-      const response = await axiosInstance.get('/orders/all', {
-        headers: { Authorization: `Bearer ${token}` }
-      })
+      const response = await axiosInstance.get('/orders/all')
       setOrders(response.data.data)
     } catch (err) {
       console.error('Error fetching orders:', err)
@@ -26,19 +35,17 @@ const AdminOrders = () => {
 
   const updateOrderStatus = async (orderId, newStatus) => {
     try {
-      const token = localStorage.getItem('adminAccessToken')
       const response = await axiosInstance.patch(
         `/orders/${orderId}/status`,
-        { status: newStatus },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { status: newStatus }
       )
       
       if (response.data.success) {
-        alert(`Order ${newStatus === 'Confirmed' ? 'confirmed' : 'status updated'} successfully! User will be notified.`)
+        toast.success(`Order ${newStatus === 'Confirmed' ? 'confirmed' : 'status updated'} successfully! User will be notified.`)
         fetchOrders()
       }
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to update order status')
+      toast.error(err.response?.data?.message || 'Failed to update order status')
     }
   }
 
@@ -72,7 +79,7 @@ const AdminOrders = () => {
                   </div>
                   <div className="text-right">
                     <p className="font-bold text-lg" style={{ color: '#284B63' }}>
-                      ${order.totalAmount}
+                      {order.totalAmount}৳
                     </p>
                     <p className="text-sm text-gray-600">
                       {new Date(order.createdAt).toLocaleDateString()}
@@ -92,7 +99,7 @@ const AdminOrders = () => {
                   <h4 className="font-semibold mb-2" style={{ color: '#284B63' }}>Items:</h4>
                   {order.items.map((item, idx) => (
                     <p key={idx} className="text-sm text-gray-700">
-                      {item.product?.name || 'Product'} x {item.quantity} - ${item.price}
+                      {item.product?.name || 'Product'} x {item.quantity} - {item.price}৳
                     </p>
                   ))}
                 </div>

@@ -11,11 +11,11 @@ const Offers = () => {
 
   const handleAddToCart = async (e, product) => {
     e.stopPropagation()
-    try {
-      await addToCart(product._id)
-      alert('Product added to cart!')
-    } catch (err) {
-      alert(err.message || 'Failed to add product to cart')
+    const result = await addToCart(product._id)
+    if (result.success) {
+      toast.success('Product added to cart!')
+    } else {
+      toast.error(result.message || 'Failed to add product to cart')
     }
   }
 
@@ -96,14 +96,14 @@ const Offers = () => {
 
                   {product.discount > 0 ? (
                     <div className="mb-3">
-                      <p className="text-sm text-gray-500 line-through">${product.price}</p>
+                      <p className="text-sm text-gray-500 line-through">{product.price}৳</p>
                       <p className="text-xl font-bold text-red-600">
-                        ${(product.price * (1 - product.discount / 100)).toFixed(2)}
+                        {(product.price * (1 - product.discount / 100)).toFixed(2)}৳
                       </p>
                     </div>
                   ) : (
                     <p className="text-xl font-bold mb-3" style={{ color: '#284B63' }}>
-                      ${product.price}
+                      {product.price}৳
                     </p>
                   )}
 

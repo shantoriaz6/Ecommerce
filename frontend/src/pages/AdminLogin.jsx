@@ -31,6 +31,9 @@ const AdminLogin = () => {
       localStorage.setItem('adminAccessToken', response.data.data.accessToken)
       localStorage.setItem('adminRefreshToken', response.data.data.refreshToken)
       
+      // Dispatch custom event to notify other components
+      window.dispatchEvent(new Event('storage'))
+      
       // Navigate to admin dashboard
       navigate('/admin/dashboard')
     } catch (err) {

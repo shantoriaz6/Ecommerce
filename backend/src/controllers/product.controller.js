@@ -76,11 +76,20 @@ const updateProduct = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { name, description, price, category, stock, brand, discount, isActive } = req.body;
 
+  console.log('Update request - ID:', id);
+  console.log('=== UPDATE PRODUCT REQUEST ===');
+  console.log('Product ID:', id);
+  console.log('Request Body:', JSON.stringify(req.body, null, 2));
+  console.log('Category from body:', category);
+  console.log('Category type:', typeof category);
+
   const product = await Product.findById(id);
 
   if (!product) {
     throw new ApiError(404, "Product not found");
   }
+
+  console.log('BEFORE UPDATE - Product category:', product.category);
 
   // Handle image upload if new file is provided
   if (req.file) {
@@ -95,13 +104,22 @@ const updateProduct = asyncHandler(async (req, res) => {
   if (name) product.name = name;
   if (description) product.description = description;
   if (price !== undefined) product.price = price;
-  if (category) product.category = category;
+  if (category) {
+    console.log('SETTING category to:', category);
+    product.category = category;
+    console.log('AFTER SETTING - product.category is now:', product.category);
+  }
   if (stock !== undefined) product.stock = stock;
   if (brand !== undefined) product.brand = brand;
   if (discount !== undefined) product.discount = discount;
   if (isActive !== undefined) product.isActive = isActive;
 
-  await product.save();
+  console.log('BEFORE SAVE - Product:', JSON.stringify(product.toObject(), null, 2));
+
+  const savedProduct = await product.save();
+
+  console.log('AFTER SAVE - Product category:', savedProduct.category);
+  console.log('AFTER SAVE - Full product:', JSON.stringify(savedProduct.toObject(), null, 2));
 
   return res
     .status(200)

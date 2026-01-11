@@ -20,25 +20,47 @@ export const CartProvider = ({ children }) => {
   const fetchCart = async () => {
     try {
       const token = localStorage.getItem('accessToken');
-      if (!token) return;
+      const refreshToken = localStorage.getItem('refreshToken');
+      
+      // Don't attempt if no tokens available
+      if (!token || !refreshToken) {
+        setCart({ items: [] });
+        setCartCount(0);
+        return;
+      }
 
       const response = await axiosInstance.get('/cart');
       setCart(response.data.data);
       setCartCount(response.data.data.items.reduce((sum, item) => sum + item.quantity, 0));
     } catch (error) {
-      console.error('Error fetching cart:', error);
+      // Silently handle auth errors - user is not logged in
+      // Don't clear tokens here - let axios interceptor handle that
+      if (error.response?.status === 401) {
+        setCart({ items: [] });
+        setCartCount(0);
+      } else {
+        console.error('Error fetching cart:', error);
+      }
     }
   };
 
   // Add to cart
   const addToCart = async (productId, quantity = 1) => {
     try {
+      const token = localStorage.getItem('accessToken');
+      if (!token) {
+        return { success: false, message: 'Please login to add items to cart' };
+      }
+      
       setLoading(true);
       const response = await axiosInstance.post('/cart/add', { productId, quantity });
       setCart(response.data.data);
       setCartCount(response.data.data.items.reduce((sum, item) => sum + item.quantity, 0));
       return { success: true, message: 'Added to cart successfully' };
     } catch (error) {
+      if (error.response?.status === 401) {
+        return { success: false, message: 'Please login to add items to cart' };
+      }
       return { success: false, message: error.response?.data?.message || 'Failed to add to cart' };
     } finally {
       setLoading(false);

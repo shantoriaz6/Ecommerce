@@ -52,6 +52,9 @@ const Register = () => {
       localStorage.setItem('accessToken', accessToken)
       localStorage.setItem('refreshToken', refreshToken)
       
+      // Dispatch custom event to notify other components
+      window.dispatchEvent(new Event('storage'))
+      
       // Redirect to home
       navigate('/')
     } catch (err) {

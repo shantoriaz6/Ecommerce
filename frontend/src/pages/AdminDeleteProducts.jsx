@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
+import toast from 'react-hot-toast'
 import AdminSidebar from '../components/AdminSidebar'
 import axiosInstance from '../services/axios'
 
 const AdminDeleteProducts = () => {
+  const navigate = useNavigate()
   const [products, setProducts] = useState([])
   const [selectedCategory, setSelectedCategory] = useState('All')
   const [loading, setLoading] = useState(true)
@@ -10,7 +13,15 @@ const AdminDeleteProducts = () => {
   const categories = ['All', 'Phone', 'Laptop', 'AirPods', 'Headphone', 'Charger', 'Printer', 'Camera', 'Monitor', 'Gaming', 'Sound', 'Gadget', 'Offers', 'Hot Deals', 'Discount']
 
   useEffect(() => {
+    // Check admin authentication
+    const adminToken = localStorage.getItem('adminAccessToken')
+    if (!adminToken) {
+      navigate('/admin/login')
+      return
+    }
+    
     fetchProducts()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCategory])
 
   const fetchProducts = async () => {
@@ -50,14 +61,11 @@ const AdminDeleteProducts = () => {
     }
 
     try {
-      const token = localStorage.getItem('adminAccessToken')
-      await axiosInstance.delete(`/products/${productId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-      alert('Product deleted successfully!')
+      await axiosInstance.delete(`/products/${productId}`)
+      toast.success('Product deleted successfully!')
       fetchProducts()
     } catch (err) {
-      alert('Failed to delete product')
+      toast.error('Failed to delete product')
     }
   }
 
@@ -98,7 +106,7 @@ const AdminDeleteProducts = () => {
                 <h3 className="font-bold mb-2" style={{ color: '#284B63' }}>{product.name}</h3>
                 <p className="text-sm text-gray-600 mb-1">{product.category}</p>
                 <p className="text-sm text-gray-600 mb-1">Stock: {product.stock}</p>
-                <p className="font-bold mb-3" style={{ color: '#284B63' }}>${product.price}</p>
+                <p className="font-bold mb-3" style={{ color: '#284B63' }}>{product.price}৳</p>
                 <button
                   onClick={() => handleDelete(product._id, product.name)}
                   className="w-full py-2 px-4 text-white font-semibold rounded-md hover:opacity-90 transition duration-200"

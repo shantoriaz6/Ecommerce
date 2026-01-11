@@ -41,10 +41,18 @@ const orderSchema = new mongoose.Schema(
     phone: {
       type: String
     },
+    paymentMethod: {
+      type: String,
+      enum: ['Cash on Delivery', 'SSL Commerz'],
+      default: 'Cash on Delivery'
+    },
     paymentStatus: {
       type: String,
       enum: ['Pending', 'Paid', 'Failed'],
       default: 'Pending'
+    },
+    transactionId: {
+      type: String
     }
   },
   { timestamps: true }
