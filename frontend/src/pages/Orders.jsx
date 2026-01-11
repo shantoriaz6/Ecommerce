@@ -7,6 +7,7 @@ const Orders = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [showSuccessMessage, setShowSuccessMessage] = useState(false)
+  const [printingOrderId, setPrintingOrderId] = useState(null)
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
 
@@ -112,6 +113,16 @@ const Orders = () => {
     }
   }
 
+  const handlePrintReceipt = (order) => {
+    setPrintingOrderId(order._id)
+    
+    // Small delay to ensure state is updated before printing
+    setTimeout(() => {
+      window.print()
+      setPrintingOrderId(null)
+    }, 100)
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -125,27 +136,109 @@ const Orders = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-600 mb-4">{error}</p>
-          <button 
-            onClick={fetchOrders}
-            className="px-6 py-3 rounded-lg text-white font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 hover:opacity-90 flex items-center gap-2 mx-auto"
-            style={{ backgroundColor: '#284B63' }}
-          >
-            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
-            </svg>
-            Retry
-          </button>
+      <>
+        {/* Print Styles */}
+        <style>
+          {`
+            @media print {
+              body * {
+                visibility: hidden;
+              }
+              .print-receipt, .print-receipt * {
+                visibility: visible;
+              }
+              .print-receipt {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                background: white !important;
+              }
+              .no-print {
+                display: none !important;
+              }
+              .print-only {
+                display: block !important;
+              }
+              @page {
+                size: A4;
+                margin: 1cm;
+              }
+            }
+            .print-only {
+              display: none;
+            }
+          `}
+        </style>
+
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="text-center">
+            <p className="text-red-600 mb-4">{error}</p>
+            <button 
+              onClick={fetchOrders}
+              className="px-6 py-3 rounded-lg text-white font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 hover:opacity-90 flex items-center gap-2 mx-auto"
+              style={{ backgroundColor: '#284B63' }}
+            >
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
+              </svg>
+              Retry
+            </button>
+          </div>
         </div>
-      </div>
+      </>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8">
-      <div className="container mx-auto px-4 max-w-6xl">
+    <>
+      {/* Print Styles */}
+      <style>
+        {`
+          @media print {
+            @page {
+              size: A4;
+              margin: 1cm;
+            }
+            html, body {
+              height: 100vh !important;
+              margin: 0 !important;
+              padding: 0 !important;
+              overflow: hidden !important;
+            }
+            * {
+              visibility: hidden !important;
+            }
+            .print-receipt {
+              visibility: visible !important;
+              position: fixed !important;
+              left: 0 !important;
+              top: 0 !important;
+              width: 100% !important;
+              height: auto !important;
+              background: white !important;
+              overflow: hidden !important;
+              page-break-after: avoid !important;
+            }
+            .print-receipt * {
+              visibility: visible !important;
+            }
+            .print-only {
+              display: block !important;
+            }
+            .no-print {
+              display: none !important;
+              visibility: hidden !important;
+            }
+          }
+          .print-only {
+            display: none;
+          }
+        `}
+      </style>
+
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8">
+        <div className="container mx-auto px-4 max-w-6xl">
         {/* Payment Success Message */}
         {showSuccessMessage && (
           <div className="mb-6 bg-green-50 border-2 border-green-500 rounded-xl p-6 shadow-lg animate-bounce-in">
@@ -219,9 +312,128 @@ const Orders = () => {
               const orderId = searchParams.get('id')
               return orderId ? order._id === orderId : true
             }).map((order) => (
-              <div key={order._id} className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300" style={{ borderColor: '#D9D9D9', borderWidth: '2px' }}>
+              <div key={order._id} className={`bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 ${printingOrderId === order._id ? 'print-receipt' : ''}`} style={{ borderColor: '#D9D9D9', borderWidth: '2px' }}>
+                {/* Print-Only Receipt - Complete One Page */}
+                <div className="print-only">
+                  {/* Receipt Header */}
+                  <div className="px-8 py-6 border-b-4" style={{ borderColor: '#284B63' }}>
+                    <div className="text-center mb-4">
+                      <h1 className="text-5xl font-bold mb-1" style={{ color: '#284B63' }}>Gadget World</h1>
+                      <h2 className="text-2xl font-bold mb-2" style={{ color: '#284B63' }}>Payment Receipt</h2>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4 text-sm border-t pt-4" style={{ borderColor: '#D9D9D9' }}>
+                      <div>
+                        <p className="font-bold text-gray-700 mb-1">Order ID:</p>
+                        <p className="font-mono text-base" style={{ color: '#284B63' }}>#{order._id}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-bold text-gray-700 mb-1">Order Date:</p>
+                        <p className="text-base">{new Date(order.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Customer Details */}
+                  <div className="px-8 py-4 border-b-2" style={{ borderColor: '#D9D9D9' }}>
+                    <h3 className="text-lg font-bold mb-3" style={{ color: '#284B63' }}>Customer Details</h3>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      {order.user?.fullName && (
+                        <div>
+                          <p className="font-bold text-gray-700 mb-1">Customer Name:</p>
+                          <p className="text-gray-800 text-base">{order.user.fullName}</p>
+                        </div>
+                      )}
+                      {order.phone && (
+                        <div>
+                          <p className="font-bold text-gray-700 mb-1">Contact Phone:</p>
+                          <p className="text-gray-800 text-base">{order.phone}</p>
+                        </div>
+                      )}
+                      <div className="col-span-2">
+                        <p className="font-bold text-gray-700 mb-1">Shipping Address:</p>
+                        <p className="text-gray-800">{order.shippingAddress}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Product Details */}
+                  <div className="px-8 py-4 border-b-2" style={{ borderColor: '#D9D9D9' }}>
+                    <h3 className="text-lg font-bold mb-3" style={{ color: '#284B63' }}>Product Details</h3>
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b" style={{ borderColor: '#D9D9D9' }}>
+                          <th className="text-left py-2 font-bold text-gray-700">Product</th>
+                          <th className="text-center py-2 font-bold text-gray-700">Quantity</th>
+                          <th className="text-right py-2 font-bold text-gray-700">Unit Price</th>
+                          <th className="text-right py-2 font-bold text-gray-700">Subtotal</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {order.items.map((item, index) => (
+                          <tr key={index} className="border-b" style={{ borderColor: '#f3f4f6' }}>
+                            <td className="py-3 text-gray-800">{item.product?.name || 'Product'}</td>
+                            <td className="py-3 text-center text-gray-700">{item.quantity}</td>
+                            <td className="py-3 text-right text-gray-700">{item.price.toFixed(2)}৳</td>
+                            <td className="py-3 text-right font-semibold" style={{ color: '#284B63' }}>{(item.price * item.quantity).toFixed(2)}৳</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Payment Details */}
+                  <div className="px-8 py-4">
+                    <h3 className="text-lg font-bold mb-3" style={{ color: '#284B63' }}>Payment Summary</h3>
+                    <div className="space-y-2 mb-4">
+                      <div className="flex justify-between text-sm text-gray-700">
+                        <span>Subtotal ({order.items.length} items):</span>
+                        <span className="font-semibold">{order.totalAmount.toFixed(2)}৳</span>
+                      </div>
+                      <div className="flex justify-between text-sm text-gray-700">
+                        <span>Shipping & Handling:</span>
+                        <span className="font-semibold">Free</span>
+                      </div>
+                      <div className="border-t-2 pt-2 mt-2" style={{ borderColor: '#D9D9D9' }}>
+                        <div className="flex justify-between items-center">
+                          <span className="text-xl font-bold" style={{ color: '#284B63' }}>Total Amount Paid:</span>
+                          <span className="text-2xl font-bold" style={{ color: '#284B63' }}>{order.totalAmount.toFixed(2)}৳</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="pt-3 border-t" style={{ borderColor: '#D9D9D9' }}>
+                      <div className="grid grid-cols-2 gap-3 text-sm">
+                        <div>
+                          <p className="text-gray-600"><strong>Payment Method:</strong></p>
+                          <p className="text-gray-800">{order.paymentMethod}</p>
+                        </div>
+                        <div>
+                          <p className="text-gray-600"><strong>Payment Status:</strong></p>
+                          <p className={order.paymentStatus === 'Paid' ? 'text-green-600 font-bold' : 'text-yellow-600 font-bold'}>{order.paymentStatus}</p>
+                        </div>
+                        {order.transactionId && (
+                          <div className="col-span-2">
+                            <p className="text-gray-600"><strong>Transaction ID:</strong></p>
+                            <p className="font-mono text-gray-800">{order.transactionId}</p>
+                          </div>
+                        )}
+                        <div className="col-span-2">
+                          <p className="text-gray-600"><strong>Order Status:</strong></p>
+                          <p className="font-bold" style={{ color: '#284B63' }}>{order.status}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Receipt Footer */}
+                  <div className="px-8 py-4 border-t-2 text-center bg-gray-50" style={{ borderColor: '#D9D9D9' }}>
+                    <p className="text-sm text-gray-600 mb-2">Thank you for shopping with us!</p>
+                    <p className="text-xs text-gray-500">For any queries, please contact our customer support.</p>
+                    <p className="text-xs text-gray-400 mt-3">This is a computer-generated receipt and does not require a signature.</p>
+                  </div>
+                </div>
+
                 {/* Order Header */}
-                <div className="px-6 py-5" style={{ borderBottom: '2px solid #D9D9D9', background: 'linear-gradient(to right, #f8fafc, #f1f5f9)' }}>
+                <div className="no-print px-6 py-5" style={{ borderBottom: '2px solid #D9D9D9', background: 'linear-gradient(to right, #f8fafc, #f1f5f9)' }}>
                   <div className="flex flex-wrap justify-between items-start gap-4">
                     <div className="flex-1 min-w-[200px]">
                       <div className="flex items-center gap-2 mb-1">
@@ -284,13 +496,14 @@ const Orders = () => {
                 </div>
 
                 {/* Order Items */}
-                <div className="px-6 py-5">
+                <div className="px-6 py-5 no-print">
                   <div className="flex items-center gap-2 mb-5">
                     <svg className="w-5 h-5" style={{ color: '#284B63' }} fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M10 2a4 4 0 00-4 4v1H5a1 1 0 00-.994.89l-1 9A1 1 0 004 18h12a1 1 0 00.994-1.11l-1-9A1 1 0 0015 7h-1V6a4 4 0 00-4-4zm2 5V6a2 2 0 10-4 0v1h4zm-6 3a1 1 0 112 0 1 1 0 01-2 0zm7-1a1 1 0 100 2 1 1 0 000-2z" clipRule="evenodd" />
                     </svg>
                     <h3 className="text-lg font-bold" style={{ color: '#284B63' }}>Order Items</h3>
                   </div>
+                  
                   <div className="space-y-3">
                     {order.items.map((item, index) => (
                       <div key={index} className="flex items-center gap-4 p-4 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors duration-200" style={{ border: '1px solid #D9D9D9' }}>
@@ -334,7 +547,7 @@ const Orders = () => {
                 </div>
 
                 {/* Shipping Info */}
-                <div className="px-6 py-5 bg-gradient-to-br from-gray-50 to-gray-100" style={{ borderTop: '2px solid #D9D9D9' }}>
+                <div className="px-6 py-5 bg-gradient-to-br from-gray-50 to-gray-100 no-print" style={{ borderTop: '2px solid #D9D9D9' }}>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="flex gap-3">
                       <div className="flex-shrink-0">
@@ -365,6 +578,20 @@ const Orders = () => {
                       </div>
                     )}
                   </div>
+  
+                  {/* Print Receipt Button */}
+                  <div className="no-print mt-6 pt-6 border-t-2" style={{ borderColor: '#D9D9D9' }}>
+                    <button
+                      onClick={() => handlePrintReceipt(order)}
+                      className="w-full md:w-auto px-8 py-3 rounded-lg text-white font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 hover:opacity-90 flex items-center justify-center gap-3"
+                      style={{ backgroundColor: '#284B63' }}
+                    >
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                      </svg>
+                      <span className="text-lg">Print Receipt</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
@@ -372,6 +599,7 @@ const Orders = () => {
         )}
       </div>
     </div>
+    </>
   )
 }
 

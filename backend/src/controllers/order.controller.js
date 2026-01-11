@@ -66,6 +66,7 @@ const createOrder = asyncHandler(async (req, res) => {
 const getUserOrders = asyncHandler(async (req, res) => {
   const orders = await Order.find({ user: req.user._id })
     .populate('items.product')
+    .populate('user', 'fullName email contactNumber')
     .sort({ createdAt: -1 });
 
   return res
