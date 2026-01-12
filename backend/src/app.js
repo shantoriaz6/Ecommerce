@@ -21,6 +21,7 @@ import orderRoutes from './routes/order.route.js';
 import adminRoutes from './routes/admin.route.js';
 import cartRoutes from './routes/cart.route.js';
 import paymentRoutes from './routes/payment.route.js';
+import deliverymanRoutes from './routes/deliveryman.route.js';
 
 //routes decleration
 app.use('/api/v1/users', userRoutes);
@@ -29,6 +30,7 @@ app.use('/api/v1/orders', orderRoutes);
 app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/cart', cartRoutes);
 app.use('/api/v1/payment', paymentRoutes);
+app.use('/api/v1/deliveryman', deliverymanRoutes);
 
 
 export { app };

@@ -31,7 +31,7 @@ const orderSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['Pending', 'Confirmed', 'Shipped', 'Delivered', 'Cancelled'],
+      enum: ['Pending', 'Confirmed', 'Shipped', 'Out for Delivery', 'Delivered', 'Cancelled'],
       default: 'Pending'
     },
     shippingAddress: {
@@ -52,6 +52,19 @@ const orderSchema = new mongoose.Schema(
       default: 'Pending'
     },
     transactionId: {
+      type: String
+    },
+    deliveryman: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Deliveryman"
+    },
+    assignedAt: {
+      type: Date
+    },
+    deliveredAt: {
+      type: Date
+    },
+    deliveryNotes: {
       type: String
     }
   },

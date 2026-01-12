@@ -1,4 +1,6 @@
 import { Admin } from "../models/admin.model.js";
+import { Deliveryman } from "../models/deliveryman.model.js";
+import { Order } from "../models/order.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
@@ -206,4 +208,178 @@ const refreshAdminToken = asyncHandler(async (req, res) => {
   }
 });
 
-export { registerAdmin, loginAdmin, logoutAdmin, refreshAdminToken };
+// Create delivery man (Admin only)
+// This endpoint allows admin to create new delivery men accounts
+const createDeliveryman = asyncHandler(async (req, res) => {
+  const { name, email, phone, password, vehicleType, vehicleNumber, licenseNumber } = req.body;
+
+  // Validate required fields
+  if ([name, email, phone, password].some((field) => field?.trim() === "")) {
+    throw new ApiError(400, "Name, email, phone, and password are required");
+  }
+
+  // Check if delivery man already exists
+  const existedDeliveryman = await Deliveryman.findOne({
+    $or: [{ email }, { phone }]
+  });
+
+  if (existedDeliveryman) {
+    throw new ApiError(409, "Delivery man with email or phone already exists");
+  }
+
+  // Create delivery man
+  const deliveryman = await Deliveryman.create({
+    name,
+    email,
+    phone,
+    password,
+    vehicleType,
+    vehicleNumber,
+    licenseNumber
+  });
+
+  const createdDeliveryman = await Deliveryman.findById(deliveryman._id).select(
+    "-password -refreshToken"
+  );
+
+  if (!createdDeliveryman) {
+    throw new ApiError(500, "Something went wrong while creating delivery man");
+  }
+
+  return res
+    .status(201)
+    .json(new ApiResponse(201, createdDeliveryman, "Delivery man created successfully"));
+});
+
+// Get all delivery men (Admin only)
+const getAllDeliverymen = asyncHandler(async (req, res) => {
+  const deliverymen = await Deliveryman.find().select("-password -refreshToken").sort({ createdAt: -1 });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, deliverymen, "Delivery men fetched successfully"));
+});
+
+// Update delivery man status (Admin only)
+const updateDeliverymanStatus = asyncHandler(async (req, res) => {
+  const { deliverymanId } = req.params;
+  const { isActive } = req.body;
+
+  const deliveryman = await Deliveryman.findByIdAndUpdate(
+    deliverymanId,
+    { isActive },
+    { new: true }
+  ).select("-password -refreshToken");
+
+  if (!deliveryman) {
+    throw new ApiError(404, "Delivery man not found");
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, deliveryman, "Delivery man status updated successfully"));
+});
+
+// Delete delivery man (Admin only)
+const deleteDeliveryman = asyncHandler(async (req, res) => {
+  const { deliverymanId } = req.params;
+
+  const deliveryman = await Deliveryman.findByIdAndDelete(deliverymanId);
+
+  if (!deliveryman) {
+    throw new ApiError(404, "Delivery man not found");
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, {}, "Delivery man deleted successfully"));
+});
+
+// Assign order to delivery man (Admin only)
+const assignOrderToDeliveryman = asyncHandler(async (req, res) => {
+  const { orderId, deliverymanId } = req.body;
+
+  if (!orderId || !deliverymanId) {
+    throw new ApiError(400, "Order ID and Delivery man ID are required");
+  }
+
+  // Check if delivery man exists and is active
+  const deliveryman = await Deliveryman.findById(deliverymanId);
+  if (!deliveryman) {
+    throw new ApiError(404, "Delivery man not found");
+  }
+
+  if (!deliveryman.isActive) {
+    throw new ApiError(400, "Delivery man is not active");
+  }
+
+  // Check if order exists
+  const order = await Order.findById(orderId);
+  if (!order) {
+    throw new ApiError(404, "Order not found");
+  }
+
+  if (order.status === 'Delivered' || order.status === 'Cancelled') {
+    throw new ApiError(400, "Cannot assign delivered or cancelled orders");
+  }
+
+  // Assign delivery man to order
+  order.deliveryman = deliverymanId;
+  order.assignedAt = new Date();
+  order.status = 'Out for Delivery';
+  await order.save();
+
+  // Update delivery man stats
+  deliveryman.totalDeliveries += 1;
+  await deliveryman.save();
+
+  const updatedOrder = await Order.findById(orderId)
+    .populate('user', 'fullName email')
+    .populate('items.product', 'name price image')
+    .populate('deliveryman', 'name phone vehicleType vehicleNumber');
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, updatedOrder, "Order assigned to delivery man successfully"));
+});
+
+// Get delivery man performance stats (Admin only)
+const getDeliverymanStats = asyncHandler(async (req, res) => {
+  const { deliverymanId } = req.params;
+
+  const deliveryman = await Deliveryman.findById(deliverymanId).select("-password -refreshToken");
+  
+  if (!deliveryman) {
+    throw new ApiError(404, "Delivery man not found");
+  }
+
+  // Get order stats
+  const orders = await Order.find({ deliveryman: deliverymanId });
+  const deliveredOrders = orders.filter(o => o.status === 'Delivered');
+  const pendingOrders = orders.filter(o => o.status === 'Out for Delivery');
+
+  const stats = {
+    deliveryman,
+    totalAssigned: orders.length,
+    delivered: deliveredOrders.length,
+    pending: pendingOrders.length,
+    successRate: orders.length > 0 ? ((deliveredOrders.length / orders.length) * 100).toFixed(2) : 0
+  };
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, stats, "Delivery man stats fetched successfully"));
+});
+
+export { 
+  registerAdmin, 
+  loginAdmin, 
+  logoutAdmin, 
+  refreshAdminToken,
+  createDeliveryman,
+  getAllDeliverymen,
+  updateDeliverymanStatus,
+  deleteDeliveryman,
+  assignOrderToDeliveryman,
+  getDeliverymanStats
+};

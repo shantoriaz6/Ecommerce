@@ -19,11 +19,6 @@ const UserProfile = () => {
   const navigate = useNavigate()
 
   useEffect(() => {
-    const token = localStorage.getItem('accessToken')
-    if (!token) {
-      navigate('/login')
-      return
-    }
     fetchUserProfile()
     fetchUserOrders()
     // eslint-disable-next-line react-hooks/exhaustive-deps

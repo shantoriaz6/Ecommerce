@@ -24,10 +24,14 @@ import AdminInventory from './pages/AdminInventory'
 import AdminAddProduct from './pages/AdminAddProduct'
 import AdminEditProducts from './pages/AdminEditProducts'
 import AdminDeleteProducts from './pages/AdminDeleteProducts'
+import AdminDeliverymen from './pages/AdminDeliverymen'
+import DeliverymanLogin from './pages/DeliverymanLogin'
+import DeliverymanDashboard from './pages/DeliverymanDashboard'
 
 function App() {
   const location = useLocation()
   const isAdminRoute = location.pathname.startsWith('/admin')
+  const isDeliverymanRoute = location.pathname.startsWith('/deliveryman')
 
   return (
     <div className="bg-gray-50 min-h-screen flex flex-col">
@@ -56,7 +60,7 @@ function App() {
           },
         }}
       />
-      {!isAdminRoute && (
+      {!isAdminRoute && !isDeliverymanRoute && (
         <>
           <Topbar />
           <Navbar />
@@ -87,10 +91,15 @@ function App() {
           <Route path="/admin/add-product" element={<AdminAddProduct />} />
           <Route path="/admin/edit-products" element={<AdminEditProducts />} />
           <Route path="/admin/delete-products" element={<AdminDeleteProducts />} />
+          <Route path="/admin/deliverymen" element={<AdminDeliverymen />} />
+
+          {/* Delivery Man Routes */}
+          <Route path="/deliveryman/login" element={<DeliverymanLogin />} />
+          <Route path="/deliveryman/dashboard" element={<DeliverymanDashboard />} />
         </Routes>
       </main>
 
-      {!isAdminRoute && <Footer />}
+      {!isAdminRoute && !isDeliverymanRoute && <Footer />}
     </div>
   )
 }

@@ -12,6 +12,7 @@ const AdminSidebar = () => {
     { path: '/admin/add-product', label: 'Add Product', icon: '➕' },
     { path: '/admin/edit-products', label: 'Edit Products', icon: '✏️' },
     { path: '/admin/delete-products', label: 'Delete Products', icon: '🗑️' },
+    { path: '/admin/deliverymen', label: 'Delivery Management', icon: '🚚' },
   ]
 
   const handleLogout = () => {
@@ -27,7 +28,7 @@ const AdminSidebar = () => {
   }
 
   return (
-    <div className="w-64 min-h-screen shadow-lg flex flex-col" style={{ backgroundColor: '#353535' }}>
+    <div className="w-64 h-screen shadow-lg flex flex-col fixed left-0 top-0 overflow-y-auto" style={{ backgroundColor: '#353535' }}>
       <div className="p-6 flex-1">
         <h2 className="text-xl font-bold text-white mb-6">Admin Panel</h2>
         <nav className="space-y-2">

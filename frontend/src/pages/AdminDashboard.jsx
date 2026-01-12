@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import AdminSidebar from '../components/AdminSidebar'
+import AdminTopbar from '../components/AdminTopbar'
+import AdminFooter from '../components/AdminFooter'
 import axiosInstance from '../services/axios'
 
 const AdminDashboard = () => {
@@ -12,14 +14,6 @@ const AdminDashboard = () => {
   })
 
   useEffect(() => {
-    // Check admin authentication
-    const adminToken = localStorage.getItem('adminAccessToken')
-    if (!adminToken) {
-      console.warn('⚠️ Admin not authenticated, redirecting to login')
-      navigate('/admin/login')
-      return
-    }
-    
     fetchStats()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -45,15 +39,17 @@ const AdminDashboard = () => {
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       <AdminSidebar />
-      <div className="flex-1 p-8">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2" style={{ color: '#284B63' }}>
-            Dashboard
-          </h1>
-          <p className="text-gray-600">Welcome to your admin panel</p>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <AdminTopbar />
+      <div className="flex-1 ml-64 mt-20 flex flex-col">
+        <div className="flex-1 p-8">
+          <div className="mb-8">
+            <h1 className="text-4xl font-bold mb-2" style={{ color: '#284B63' }}>
+              Dashboard
+            </h1>
+            <p className="text-gray-600">Welcome to your admin panel</p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Total Products Card */}
           <div className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1" style={{ border: '2px solid #D9D9D9' }}>
             <div className="flex items-center justify-between mb-4">
@@ -124,6 +120,8 @@ const AdminDashboard = () => {
             </p>
           </div>
         </div>
+        </div>
+        <AdminFooter />
       </div>
     </div>
   )

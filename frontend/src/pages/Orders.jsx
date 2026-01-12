@@ -12,12 +12,6 @@ const Orders = () => {
   const [searchParams, setSearchParams] = useSearchParams()
 
   useEffect(() => {
-    const token = localStorage.getItem('accessToken')
-    if (!token) {
-      navigate('/login')
-      return
-    }
-    
     // Check for payment success parameter
     const paymentStatus = searchParams.get('payment')
     if (paymentStatus === 'success') {

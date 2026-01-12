@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import AdminSidebar from '../components/AdminSidebar'
+import AdminTopbar from '../components/AdminTopbar'
+import AdminFooter from '../components/AdminFooter'
 import axiosInstance from '../services/axios'
 
 const AdminInventory = () => {
@@ -15,17 +17,28 @@ const AdminInventory = () => {
   const [lastUpdated, setLastUpdated] = useState(null)
   const [autoRefresh, setAutoRefresh] = useState(true)
 
-  // Colors for charts
-  const COLORS = ['#284B63', '#3C6E71', '#D9D9D9', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899', '#06B6D4', '#84CC16']
+  // All 11 product categories
+  const ALL_CATEGORIES = ['Phone', 'Laptop', 'AirPods', 'Headphone', 'Charger', 'Printer', 'Camera', 'Monitor', 'Gaming', 'Sound', 'Gadget']
+  
+  // Colors for each of the 11 categories - unique color per category
+  const CATEGORY_COLORS = {
+    'Phone': '#284B63',      // Dark Blue
+    'Laptop': '#3C6E71',     // Teal
+    'AirPods': '#F59E0B',    // Orange
+    'Headphone': '#8B5CF6',  // Purple
+    'Charger': '#10B981',    // Green
+    'Printer': '#EC4899',    // Pink
+    'Camera': '#EF4444',     // Red
+    'Monitor': '#06B6D4',    // Cyan
+    'Gaming': '#84CC16',     // Lime
+    'Sound': '#6366F1',      // Indigo
+    'Gadget': '#F97316'      // Deep Orange
+  }
+  
+  // Colors array for other charts
+  const COLORS = Object.values(CATEGORY_COLORS)
 
   useEffect(() => {
-    // Check admin authentication
-    const adminToken = localStorage.getItem('adminAccessToken')
-    if (!adminToken) {
-      navigate('/admin/login')
-      return
-    }
-    
     fetchInventoryStats()
 
     // Auto-refresh every 30 seconds if enabled
@@ -63,44 +76,46 @@ const AdminInventory = () => {
       const response = await axiosInstance.get('/products')
       const products = response.data.data
 
-      // Calculate stats by category
+      // Initialize all 11 categories with zero values
       const categoryMap = {}
+      ALL_CATEGORIES.forEach(cat => {
+        categoryMap[cat] = {
+          category: cat,
+          productCount: 0,
+          totalStock: 0,
+          lowStockProducts: 0,
+          products: [],
+          color: CATEGORY_COLORS[cat]
+        }
+      })
+
       let totalStockCount = 0
       let lowStock = 0
 
+      // Populate with actual product data
       products.forEach(product => {
-        const category = product.category || 'Uncategorized'
+        const category = product.category || 'Gadget'
         
-        if (!categoryMap[category]) {
-          categoryMap[category] = {
-            category,
-            productCount: 0,
-            totalStock: 0,
-            lowStockProducts: 0,
-            products: []
+        if (categoryMap[category]) {
+          categoryMap[category].productCount += 1
+          categoryMap[category].totalStock += product.stock || 0
+          categoryMap[category].products.push({
+            name: product.name,
+            stock: product.stock || 0,
+            price: product.price
+          })
+
+          if (product.stock < 10) {
+            categoryMap[category].lowStockProducts += 1
+            lowStock += 1
           }
+
+          totalStockCount += product.stock || 0
         }
-
-        categoryMap[category].productCount += 1
-        categoryMap[category].totalStock += product.stock || 0
-        categoryMap[category].products.push({
-          name: product.name,
-          stock: product.stock || 0,
-          price: product.price
-        })
-
-        if (product.stock < 10) {
-          categoryMap[category].lowStockProducts += 1
-          lowStock += 1
-        }
-
-        totalStockCount += product.stock || 0
       })
 
-      // Convert to array and sort by product count
-      const statsArray = Object.values(categoryMap).sort(
-        (a, b) => b.productCount - a.productCount
-      )
+      // Convert to array in the order of ALL_CATEGORIES
+      const statsArray = ALL_CATEGORIES.map(cat => categoryMap[cat])
 
       setCategoryStats(statsArray)
       setTotalProducts(products.length)
@@ -131,8 +146,10 @@ const AdminInventory = () => {
   return (
     <div className="flex min-h-screen bg-gray-50">
       <AdminSidebar />
-      <div className="flex-1 p-8">
-        <div className="flex justify-between items-center mb-8">
+      <AdminTopbar />
+      <div className="flex-1 ml-64 mt-20 flex flex-col">
+        <div className="flex-1 p-8">
+          <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-3xl font-bold" style={{ color: '#284B63' }}>
               Inventory Statistics
@@ -216,50 +233,96 @@ const AdminInventory = () => {
             </div>
 
             {/* Charts Section */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-              {/* Bar Chart - Stock by Category */}
+            <div className="grid grid-cols-1 gap-6 mb-8">
+              {/* Bar Chart - Stock by Category - Full Width with all 11 categories */}
               <div className="bg-white rounded-xl shadow-md border-2 p-6" style={{ borderColor: '#D9D9D9' }}>
                 <h2 className="text-xl font-bold mb-4" style={{ color: '#284B63' }}>
-                  Stock Availability by Category
+                  Stock Availability by Category (11 Categories)
                 </h2>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={categoryStats}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="category" angle={-45} textAnchor="end" height={80} style={{ fontSize: '12px' }} />
-                    <YAxis />
+                <p className="text-sm text-gray-600 mb-4">
+                  Real-time stock levels across all product categories. Updates automatically when products are sold.
+                </p>
+                <ResponsiveContainer width="100%" height={400}>
+                  <BarChart data={categoryStats} margin={{ top: 20, right: 30, left: 20, bottom: 80 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <XAxis 
+                      dataKey="category" 
+                      angle={-45} 
+                      textAnchor="end" 
+                      height={100} 
+                      style={{ fontSize: '11px', fontWeight: '600' }}
+                      interval={0}
+                    />
+                    <YAxis 
+                      label={{ value: 'Stock Units', angle: -90, position: 'insideLeft', style: { fontSize: '12px', fontWeight: '600' } }}
+                      style={{ fontSize: '11px' }}
+                    />
                     <Tooltip 
-                      contentStyle={{ backgroundColor: '#fff', border: '1px solid #ccc' }}
-                      formatter={(value, name) => {
-                        if (name === 'Total Stock') return [value + ' units', name];
-                        if (name === 'Products') return [value + ' items', name];
-                        return [value, name];
+                      contentStyle={{ 
+                        backgroundColor: '#fff', 
+                        border: '2px solid #284B63', 
+                        borderRadius: '8px',
+                        padding: '10px'
+                      }}
+                      labelStyle={{ fontWeight: 'bold', color: '#284B63' }}
+                      formatter={(value, name, props) => {
+                        return [
+                          <span style={{ fontWeight: 'bold', color: props.payload.color }}>
+                            {value} units
+                          </span>, 
+                          'Stock'
+                        ];
                       }}
                     />
-                    <Legend />
-                    <Bar dataKey="totalStock" fill="#284B63" name="Total Stock" />
-                    <Bar dataKey="productCount" fill="#3C6E71" name="Products" />
+                    <Bar 
+                      dataKey="totalStock" 
+                      name="Stock Units"
+                      radius={[8, 8, 0, 0]}
+                    >
+                      {categoryStats.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Bar>
                   </BarChart>
                 </ResponsiveContainer>
+                <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                  {categoryStats.map((stat, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <div 
+                        className="w-4 h-4 rounded" 
+                        style={{ backgroundColor: stat.color }}
+                      ></div>
+                      <span className="text-xs font-medium text-gray-700">
+                        {stat.category}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </div>
+            </div>
+
+            {/* Additional Charts Section */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
 
               {/* Pie Chart - Product Distribution */}
               <div className="bg-white rounded-xl shadow-md border-2 p-6" style={{ borderColor: '#D9D9D9' }}>
                 <h2 className="text-xl font-bold mb-4" style={{ color: '#284B63' }}>
                   Product Distribution by Category
                 </h2>
-                <ResponsiveContainer width="100%" height={300}>
+                <ResponsiveContainer width="100%" height={350}>
                   <PieChart>
                     <Pie
                       data={categoryStats}
                       cx="50%"
                       cy="50%"
-                      labelLine={false}
+                      labelLine={true}
                       label={({ category, productCount, percent }) => 
                         `${category}: ${(percent * 100).toFixed(0)}%`
                       }
-                      outerRadius={80}
+                      outerRadius={90}
                       fill="#8884d8"
                       dataKey="productCount"
+                      minAngle={5}
                     >
                       {categoryStats.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -409,6 +472,8 @@ const AdminInventory = () => {
             </div>
           </>
         )}
+        </div>
+        <AdminFooter />
       </div>
     </div>
   )

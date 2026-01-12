@@ -101,6 +101,7 @@ const getAllOrders = asyncHandler(async (req, res) => {
   const orders = await Order.find()
     .populate('items.product')
     .populate('user', 'fullName email contactNumber')
+    .populate('deliveryman', 'name phone email vehicleType vehicleNumber')
     .sort({ createdAt: -1 });
 
   return res

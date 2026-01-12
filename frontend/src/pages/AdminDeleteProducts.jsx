@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import AdminSidebar from '../components/AdminSidebar'
+import AdminTopbar from '../components/AdminTopbar'
+import AdminFooter from '../components/AdminFooter'
 import axiosInstance from '../services/axios'
 
 const AdminDeleteProducts = () => {
@@ -13,13 +15,6 @@ const AdminDeleteProducts = () => {
   const categories = ['All', 'Phone', 'Laptop', 'AirPods', 'Headphone', 'Charger', 'Printer', 'Camera', 'Monitor', 'Gaming', 'Sound', 'Gadget', 'Offers', 'Hot Deals', 'Discount']
 
   useEffect(() => {
-    // Check admin authentication
-    const adminToken = localStorage.getItem('adminAccessToken')
-    if (!adminToken) {
-      navigate('/admin/login')
-      return
-    }
-    
     fetchProducts()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCategory])
@@ -72,10 +67,12 @@ const AdminDeleteProducts = () => {
   return (
     <div className="flex min-h-screen bg-gray-50">
       <AdminSidebar />
-      <div className="flex-1 p-8">
-        <h1 className="text-3xl font-bold mb-8" style={{ color: '#284B63' }}>
-          Delete Products
-        </h1>
+      <AdminTopbar />
+      <div className="flex-1 ml-64 mt-20 flex flex-col">
+        <div className="flex-1 p-8">
+          <h1 className="text-3xl font-bold mb-8" style={{ color: '#284B63' }}>
+            Delete Products
+          </h1>
 
         <div className="mb-6">
           <label className="block text-sm font-medium mb-2" style={{ color: '#284B63' }}>
@@ -118,6 +115,8 @@ const AdminDeleteProducts = () => {
             ))}
           </div>
         )}
+        </div>
+        <AdminFooter />
       </div>
     </div>
   )

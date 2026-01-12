@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import AdminSidebar from '../components/AdminSidebar'
+import AdminTopbar from '../components/AdminTopbar'
+import AdminFooter from '../components/AdminFooter'
 import axiosInstance from '../services/axios'
 
 const AdminAddProduct = () => {
@@ -24,11 +26,7 @@ const AdminAddProduct = () => {
   const categories = ['Phone', 'Laptop', 'AirPods', 'Headphone', 'Charger', 'Printer', 'Camera', 'Monitor', 'Gaming', 'Sound', 'Gadget']
 
   useEffect(() => {
-    // Check admin authentication
-    const adminToken = localStorage.getItem('adminAccessToken')
-    if (!adminToken) {
-      navigate('/admin/login')
-    }
+    // Component initialization
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -99,9 +97,11 @@ const AdminAddProduct = () => {
   return (
     <div className="flex min-h-screen" style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
       <AdminSidebar />
-      <div className="flex-1 p-4 md:p-6 overflow-y-auto flex items-center justify-center">
-        {/* Form Container */}
-        <div className="w-full max-w-4xl bg-white rounded-xl shadow-2xl overflow-hidden my-6">
+      <AdminTopbar />
+      <div className="flex-1 ml-64 mt-20 flex flex-col">
+        <div className="flex-1 p-4 md:p-6 overflow-y-auto flex items-center justify-center">
+          {/* Form Container */}
+          <div className="w-full max-w-4xl bg-white rounded-xl shadow-2xl overflow-hidden my-6">
           {/* Form Header */}
           <div className="px-6 py-4" style={{ background: 'linear-gradient(135deg, #284B63 0%, #3a5f7d 100%)' }}>
             <div className="flex items-center gap-3">
@@ -356,6 +356,8 @@ const AdminAddProduct = () => {
             </div>
           </form>
         </div>
+        </div>
+        <AdminFooter />
       </div>
     </div>
   )

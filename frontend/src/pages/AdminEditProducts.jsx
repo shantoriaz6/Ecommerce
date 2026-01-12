@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import AdminSidebar from '../components/AdminSidebar'
+import AdminTopbar from '../components/AdminTopbar'
+import AdminFooter from '../components/AdminFooter'
 import axiosInstance from '../services/axios'
 
 const AdminEditProducts = () => {
@@ -23,13 +25,6 @@ const AdminEditProducts = () => {
   const categories = ['All', 'Phone', 'Laptop', 'AirPods', 'Headphone', 'Charger', 'Printer', 'Camera', 'Monitor', 'Gaming', 'Sound', 'Gadget', 'Offers', 'Hot Deals', 'Discount']
 
   useEffect(() => {
-    // Check admin authentication
-    const adminToken = localStorage.getItem('adminAccessToken')
-    if (!adminToken) {
-      navigate('/admin/login')
-      return
-    }
-    
     fetchProducts()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCategory])
@@ -106,7 +101,8 @@ const AdminEditProducts = () => {
   return (
     <div className="flex min-h-screen" style={{ background: selectedProduct ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : '#f9fafb' }}>
       <AdminSidebar />
-      
+      <AdminTopbar />
+      <div className="flex-1 ml-64 mt-20 flex flex-col">
       {selectedProduct ? (
         // Edit Form (Similar to Add Product Design)
         <div className="flex-1 p-4 md:p-6 overflow-y-auto flex items-center justify-center">
@@ -366,6 +362,8 @@ const AdminEditProducts = () => {
           </div>
         </div>
       )}
+      <AdminFooter />
+      </div>
     </div>
   )
 }
