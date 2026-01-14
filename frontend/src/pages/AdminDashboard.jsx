@@ -25,14 +25,23 @@ const AdminDashboard = () => {
         axiosInstance.get('/orders/all')
       ])
 
-      const orders = ordersRes.data.data
+      // The orders endpoint returns { orders: [], stats: {} }
+      const ordersData = ordersRes.data.data
+      const orders = ordersData.orders || []
+      
       setStats({
-        totalProducts: productsRes.data.data.length,
+        totalProducts: Array.isArray(productsRes.data.data) ? productsRes.data.data.length : 0,
         totalOrders: orders.length,
         pendingOrders: orders.filter(o => o.status === 'Pending').length
       })
     } catch (err) {
       console.error('Error fetching stats:', err)
+      // Set default values on error
+      setStats({
+        totalProducts: 0,
+        totalOrders: 0,
+        pendingOrders: 0
+      })
     }
   }
 

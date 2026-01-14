@@ -7,11 +7,10 @@ const AdminSidebar = () => {
 
   const menuItems = [
     { path: '/admin/dashboard', label: 'Dashboard', icon: '📊' },
+    { path: '/admin/revenue', label: 'Revenue', icon: '💰' },
     { path: '/admin/orders', label: 'User Orders', icon: '📦' },
     { path: '/admin/inventory', label: 'Inventory Stats', icon: '📈' },
-    { path: '/admin/add-product', label: 'Add Product', icon: '➕' },
-    { path: '/admin/edit-products', label: 'Edit Products', icon: '✏️' },
-    { path: '/admin/delete-products', label: 'Delete Products', icon: '🗑️' },
+    { path: '/admin/manage-products', label: 'Manage Products', icon: '📦' },
     { path: '/admin/deliverymen', label: 'Delivery Management', icon: '🚚' },
   ]
 
@@ -32,21 +31,27 @@ const AdminSidebar = () => {
       <div className="p-6 flex-1">
         <h2 className="text-xl font-bold text-white mb-6">Admin Panel</h2>
         <nav className="space-y-2">
-          {menuItems.map((item) => (
-            <Link
-              key={item.path}
-              to={item.path}
-              className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition duration-200 ${
-                location.pathname === item.path
-                  ? 'text-white'
-                  : 'text-gray-300 hover:bg-gray-700'
-              }`}
-              style={location.pathname === item.path ? { backgroundColor: '#284B63' } : {}}
-            >
-              <span>{item.icon}</span>
-              <span>{item.label}</span>
-            </Link>
-          ))}
+          {menuItems.map((item) => {
+            const isActive = item.path === '/admin/manage-products' 
+              ? location.pathname.startsWith('/admin/manage-products')
+              : location.pathname === item.path
+            
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition duration-200 ${
+                  isActive
+                    ? 'text-white'
+                    : 'text-gray-300 hover:bg-gray-700'
+                }`}
+                style={isActive ? { backgroundColor: '#284B63' } : {}}
+              >
+                <span>{item.icon}</span>
+                <span>{item.label}</span>
+              </Link>
+            )
+          })}
         </nav>
       </div>
       

@@ -36,22 +36,26 @@ const AdminEditProducts = () => {
       
       if (selectedCategory === 'All') {
         const response = await axiosInstance.get(url)
-        fetchedProducts = response.data.data
+        fetchedProducts = Array.isArray(response.data.data) ? response.data.data : []
       } else if (selectedCategory === 'Offers' || selectedCategory === 'Discount') {
         const response = await axiosInstance.get(url)
-        fetchedProducts = response.data.data.filter(product => product.discount && product.discount > 0)
+        const data = Array.isArray(response.data.data) ? response.data.data : []
+        fetchedProducts = data.filter(product => product.discount && product.discount > 0)
       } else if (selectedCategory === 'Hot Deals') {
         const response = await axiosInstance.get(url)
-        fetchedProducts = response.data.data.filter(product => product.discount && product.discount >= 15)
+        const data = Array.isArray(response.data.data) ? response.data.data : []
+        fetchedProducts = data.filter(product => product.discount && product.discount >= 15)
       } else {
         url = `/products?category=${selectedCategory}`
         const response = await axiosInstance.get(url)
-        fetchedProducts = response.data.data
+        fetchedProducts = Array.isArray(response.data.data) ? response.data.data : []
       }
       
       setProducts(fetchedProducts)
     } catch (err) {
       console.error('Error fetching products:', err)
+      toast.error('Failed to fetch products. Please try again.')
+      setProducts([])
     } finally {
       setLoading(false)
     }

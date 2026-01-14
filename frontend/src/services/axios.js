@@ -19,7 +19,7 @@ const processQueue = (error, token = null) => {
 // Create axios instance with base configuration
 const axiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1',
-  timeout: 10000,
+  timeout: 30000, // Increased timeout to 30 seconds
   withCredentials: true, // Send cookies with requests
   headers: {
     'Content-Type': 'application/json',
@@ -29,21 +29,34 @@ const axiosInstance = axios.create({
 // Request interceptor - Add token to headers if available
 axiosInstance.interceptors.request.use(
   (config) => {
-    // Check route type
-    const isAdminRoute = config.url?.startsWith('/admin') || 
-                         config.url?.startsWith('/orders') || 
-                         (config.url?.startsWith('/products') && config.method !== 'get');
+    // Determine token type based on current page URL, not API endpoint
+    const currentPath = window.location.pathname;
+    const isAdminPage = currentPath.startsWith('/admin');
+    const isDeliverymanPage = currentPath.startsWith('/deliveryman');
     
-    const isDeliverymanRoute = config.url?.startsWith('/deliveryman');
+    // Skip token check for login, register, and public endpoints
+    const isPublicEndpoint = config.url?.includes('/login') || 
+                             config.url?.includes('/register') || 
+                             config.url?.includes('/refresh-token') ||
+                             (config.url?.includes('/products') && config.method === 'get');
     
-    // Use appropriate token
-    let token;
-    if (isAdminRoute) {
+    // Use appropriate token based on current page context
+    let token, loginPath;
+    if (isAdminPage) {
       token = localStorage.getItem('adminAccessToken');
-    } else if (isDeliverymanRoute) {
+      loginPath = '/admin/login';
+    } else if (isDeliverymanPage) {
       token = localStorage.getItem('deliverymanAccessToken');
+      loginPath = '/deliveryman/login';
     } else {
       token = localStorage.getItem('accessToken');
+      loginPath = '/login';
+    }
+    
+    // If no token exists for protected routes and not on login page, redirect to login
+    if (!token && !isPublicEndpoint && currentPath !== loginPath) {
+      window.location.href = loginPath;
+      return Promise.reject(new Error('No authentication token found'));
     }
     
     if (token) {
@@ -64,29 +77,58 @@ axiosInstance.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // Handle 401 Unauthorized - Token expired
+    // Handle 401 Unauthorized - Token expired or invalid
     if (error.response?.status === 401 && !originalRequest._retry) {
       // Skip token refresh for login and refresh-token endpoints
       if (originalRequest.url?.includes('/login') || originalRequest.url?.includes('/refresh-token')) {
         return Promise.reject(error);
       }
 
+      // Check if error is about invalid/expired refresh token - clear everything immediately
+      const errorMessage = error.response?.data?.message || '';
+      if (errorMessage.includes('Invalid or expired refresh token') || errorMessage.includes('Invalid refresh token')) {
+        console.warn('⚠️ Invalid refresh token detected, clearing all tokens');
+        const currentPath = window.location.pathname;
+        const isAdminPage = currentPath.startsWith('/admin');
+        const isDeliverymanPage = currentPath.startsWith('/deliveryman');
+        
+        // Clear appropriate tokens
+        if (isAdminPage) {
+          localStorage.removeItem('adminAccessToken');
+          localStorage.removeItem('adminRefreshToken');
+          if (window.location.pathname !== '/admin/login') {
+            window.location.href = '/admin/login';
+          }
+        } else if (isDeliverymanPage) {
+          localStorage.removeItem('deliverymanAccessToken');
+          localStorage.removeItem('deliverymanRefreshToken');
+          if (window.location.pathname !== '/deliveryman/login') {
+            window.location.href = '/deliveryman/login';
+          }
+        } else {
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('refreshToken');
+          if (window.location.pathname !== '/login') {
+            window.location.href = '/login';
+          }
+        }
+        return Promise.reject(error);
+      }
+
       originalRequest._retry = true;
 
-      // Check route type
-      const isAdminRoute = originalRequest.url?.startsWith('/admin') || 
-                           originalRequest.url?.startsWith('/orders') || 
-                           (originalRequest.url?.startsWith('/products') && originalRequest.method !== 'get');
+      // Determine user type based on current page URL, not API endpoint
+      const currentPath = window.location.pathname;
+      const isAdminPage = currentPath.startsWith('/admin');
+      const isDeliverymanPage = currentPath.startsWith('/deliveryman');
       
-      const isDeliverymanRoute = originalRequest.url?.startsWith('/deliveryman');
-      
-      // Get appropriate refresh token
+      // Get appropriate refresh token based on current page context
       let refreshToken, endpoint, loginPath;
-      if (isAdminRoute) {
+      if (isAdminPage) {
         refreshToken = localStorage.getItem('adminRefreshToken');
         endpoint = '/admin/refresh-token';
         loginPath = '/admin/login';
-      } else if (isDeliverymanRoute) {
+      } else if (isDeliverymanPage) {
         refreshToken = localStorage.getItem('deliverymanRefreshToken');
         endpoint = '/deliveryman/refresh-token';
         loginPath = '/deliveryman/login';
@@ -99,10 +141,10 @@ axiosInstance.interceptors.response.use(
       if (!refreshToken) {
         console.warn('⚠️ No refresh token found, clearing tokens');
         // No refresh token - clear any stale access token
-        if (isAdminRoute) {
+        if (isAdminPage) {
           localStorage.removeItem('adminAccessToken');
           localStorage.removeItem('adminRefreshToken');
-        } else if (isDeliverymanRoute) {
+        } else if (isDeliverymanPage) {
           localStorage.removeItem('deliverymanAccessToken');
           localStorage.removeItem('deliverymanRefreshToken');
         } else {
@@ -144,13 +186,13 @@ axiosInstance.interceptors.response.use(
         
         console.log('✅ Token refresh successful');
         
-        // Store new tokens based on route type
-        if (isAdminRoute) {
+        // Store new tokens based on current page context
+        if (isAdminPage) {
           localStorage.setItem('adminAccessToken', accessToken);
           if (newRefreshToken) {
             localStorage.setItem('adminRefreshToken', newRefreshToken);
           }
-        } else if (isDeliverymanRoute) {
+        } else if (isDeliverymanPage) {
           localStorage.setItem('deliverymanAccessToken', accessToken);
           if (newRefreshToken) {
             localStorage.setItem('deliverymanRefreshToken', newRefreshToken);
@@ -176,14 +218,14 @@ axiosInstance.interceptors.response.use(
         processQueue(refreshError, null);
         isRefreshing = false;
         
-        // Clear tokens and redirect to login
-        if (isAdminRoute) {
+        // Clear tokens and redirect to login based on current page context
+        if (isAdminPage) {
           localStorage.removeItem('adminAccessToken');
           localStorage.removeItem('adminRefreshToken');
           if (window.location.pathname !== '/admin/login') {
             window.location.href = '/admin/login';
           }
-        } else if (isDeliverymanRoute) {
+        } else if (isDeliverymanPage) {
           localStorage.removeItem('deliverymanAccessToken');
           localStorage.removeItem('deliverymanRefreshToken');
           if (window.location.pathname !== '/deliveryman/login') {

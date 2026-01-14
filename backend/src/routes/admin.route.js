@@ -9,7 +9,8 @@ import {
   updateDeliverymanStatus,
   deleteDeliveryman,
   assignOrderToDeliveryman,
-  getDeliverymanStats
+  getDeliverymanStats,
+  getRevenueStats
 } from "../controllers/admin.controller.js";
 import { verifyAdmin } from "../middlewares/admin.middleware.js";
 
@@ -29,5 +30,6 @@ router.route("/deliverymen/:deliverymanId").patch(verifyAdmin, updateDeliveryman
 router.route("/deliverymen/:deliverymanId").delete(verifyAdmin, deleteDeliveryman);
 router.route("/deliverymen/:deliverymanId/stats").get(verifyAdmin, getDeliverymanStats);
 router.route("/assign-order").post(verifyAdmin, assignOrderToDeliveryman);
+router.route("/revenue").get(verifyAdmin, getRevenueStats);
 
 export default router;

@@ -98,15 +98,48 @@ const getOrderById = asyncHandler(async (req, res) => {
 
 // Get all orders (Admin only)
 const getAllOrders = asyncHandler(async (req, res) => {
-  const orders = await Order.find()
+  const { startDate, endDate } = req.query;
+
+  // Build query filter
+  let query = {};
+
+  // Add date range filter if provided
+  if (startDate || endDate) {
+    query.createdAt = {};
+    
+    if (startDate) {
+      // Start of the start date (00:00:00)
+      query.createdAt.$gte = new Date(startDate);
+      query.createdAt.$gte.setHours(0, 0, 0, 0);
+    }
+    
+    if (endDate) {
+      // End of the end date (23:59:59)
+      query.createdAt.$lte = new Date(endDate);
+      query.createdAt.$lte.setHours(23, 59, 59, 999);
+    }
+  }
+
+  const orders = await Order.find(query)
     .populate('items.product')
     .populate('user', 'fullName email contactNumber')
     .populate('deliveryman', 'name phone email vehicleType vehicleNumber')
     .sort({ createdAt: -1 });
 
+  // Calculate statistics for the filtered orders
+  const stats = {
+    totalOrders: orders.length,
+    totalRevenue: orders.reduce((sum, order) => sum + order.totalAmount, 0),
+    paidOrders: orders.filter(o => o.paymentStatus === 'Paid').length,
+    pendingOrders: orders.filter(o => o.status === 'Pending').length,
+    confirmedOrders: orders.filter(o => o.status === 'Confirmed').length,
+    deliveredOrders: orders.filter(o => o.status === 'Delivered').length,
+    cancelledOrders: orders.filter(o => o.status === 'Cancelled').length
+  };
+
   return res
     .status(200)
-    .json(new ApiResponse(200, orders, "All orders fetched successfully"));
+    .json(new ApiResponse(200, { orders, stats }, "All orders fetched successfully"));
 });
 
 // Update order status (Admin only)

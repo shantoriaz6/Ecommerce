@@ -19,8 +19,10 @@ import Discount from './pages/Discount'
 import AboutUs from './pages/AboutUs'
 import AdminLogin from './pages/AdminLogin'
 import AdminDashboard from './pages/AdminDashboard'
+import AdminRevenue from './pages/AdminRevenue'
 import AdminOrders from './pages/AdminOrders'
 import AdminInventory from './pages/AdminInventory'
+import AdminManageProducts from './pages/AdminManageProducts'
 import AdminAddProduct from './pages/AdminAddProduct'
 import AdminEditProducts from './pages/AdminEditProducts'
 import AdminDeleteProducts from './pages/AdminDeleteProducts'
@@ -86,11 +88,13 @@ function App() {
           {/* Admin Routes */}
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/admin/revenue" element={<AdminRevenue />} />
           <Route path="/admin/orders" element={<AdminOrders />} />
           <Route path="/admin/inventory" element={<AdminInventory />} />
-          <Route path="/admin/add-product" element={<AdminAddProduct />} />
-          <Route path="/admin/edit-products" element={<AdminEditProducts />} />
-          <Route path="/admin/delete-products" element={<AdminDeleteProducts />} />
+          <Route path="/admin/manage-products" element={<AdminManageProducts />} />
+          <Route path="/admin/manage-products/add" element={<AdminAddProduct />} />
+          <Route path="/admin/manage-products/edit" element={<AdminEditProducts />} />
+          <Route path="/admin/manage-products/delete" element={<AdminDeleteProducts />} />
           <Route path="/admin/deliverymen" element={<AdminDeliverymen />} />
 
           {/* Delivery Man Routes */}

@@ -371,6 +371,120 @@ const getDeliverymanStats = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, stats, "Delivery man stats fetched successfully"));
 });
 
+// Get revenue statistics
+const getRevenueStats = asyncHandler(async (req, res) => {
+  const { year, month } = req.query;
+
+  // Get all paid orders
+  const paidOrders = await Order.find({ 
+    paymentStatus: 'Paid' 
+  }).select('totalAmount createdAt');
+
+  // Calculate overall total revenue
+  const totalRevenue = paidOrders.reduce((sum, order) => sum + order.totalAmount, 0);
+  const totalOrders = paidOrders.length;
+
+  // Get available years from orders
+  const availableYears = [...new Set(paidOrders.map(order => 
+    new Date(order.createdAt).getFullYear()
+  ))].sort((a, b) => b - a);
+
+  // If specific year and month provided, get daily revenue for that month
+  if (year && month) {
+    const selectedYear = parseInt(year);
+    const selectedMonth = parseInt(month);
+    
+    // Filter orders for the selected month
+    const monthOrders = paidOrders.filter(order => {
+      const orderDate = new Date(order.createdAt);
+      return orderDate.getFullYear() === selectedYear && 
+             orderDate.getMonth() + 1 === selectedMonth;
+    });
+
+    // Get number of days in the selected month
+    const daysInMonth = new Date(selectedYear, selectedMonth, 0).getDate();
+    
+    // Initialize daily data
+    const dailyData = {};
+    for (let day = 1; day <= daysInMonth; day++) {
+      const key = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      dailyData[key] = { date: day, revenue: 0, orders: 0 };
+    }
+    
+    // Aggregate orders by day
+    monthOrders.forEach(order => {
+      const orderDate = new Date(order.createdAt);
+      const day = orderDate.getDate();
+      const key = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      
+      dailyData[key].revenue += order.totalAmount;
+      dailyData[key].orders += 1;
+    });
+    
+    // Calculate month totals
+    const monthRevenue = monthOrders.reduce((sum, order) => sum + order.totalAmount, 0);
+    const monthOrderCount = monthOrders.length;
+
+    return res
+      .status(200)
+      .json(new ApiResponse(200, {
+        totalRevenue,
+        totalOrders,
+        monthRevenue,
+        monthOrders: monthOrderCount,
+        availableYears,
+        dailyData: Object.values(dailyData)
+      }, "Revenue statistics fetched successfully"));
+  }
+
+  // If only year provided, get monthly revenue for that year
+  if (year) {
+    const selectedYear = parseInt(year);
+    const monthlyData = {};
+    
+    // Initialize all 12 months
+    for (let m = 1; m <= 12; m++) {
+      const key = `${selectedYear}-${String(m).padStart(2, '0')}`;
+      monthlyData[key] = { month: m, revenue: 0, orders: 0 };
+    }
+    
+    // Filter and aggregate orders for the selected year
+    paidOrders.forEach(order => {
+      const orderDate = new Date(order.createdAt);
+      if (orderDate.getFullYear() === selectedYear) {
+        const month = orderDate.getMonth() + 1;
+        const key = `${selectedYear}-${String(month).padStart(2, '0')}`;
+        
+        monthlyData[key].revenue += order.totalAmount;
+        monthlyData[key].orders += 1;
+      }
+    });
+
+    const yearRevenue = Object.values(monthlyData).reduce((sum, m) => sum + m.revenue, 0);
+    const yearOrders = Object.values(monthlyData).reduce((sum, m) => sum + m.orders, 0);
+
+    return res
+      .status(200)
+      .json(new ApiResponse(200, {
+        totalRevenue,
+        totalOrders,
+        yearRevenue,
+        yearOrders,
+        availableYears,
+        monthlyData: Object.values(monthlyData)
+      }, "Revenue statistics fetched successfully"));
+  }
+
+  // Default: return overview with available years
+  return res
+    .status(200)
+    .json(new ApiResponse(200, {
+      totalRevenue,
+      totalOrders,
+      availableYears
+    }, "Revenue statistics fetched successfully"));
+});
+
 export { 
   registerAdmin, 
   loginAdmin, 
@@ -381,5 +495,6 @@ export {
   updateDeliverymanStatus,
   deleteDeliveryman,
   assignOrderToDeliveryman,
-  getDeliverymanStats
+  getDeliverymanStats,
+  getRevenueStats
 };
