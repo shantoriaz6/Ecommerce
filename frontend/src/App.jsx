@@ -17,6 +17,7 @@ import Offers from './pages/Offers'
 import HotDeals from './pages/HotDeals'
 import Discount from './pages/Discount'
 import AboutUs from './pages/AboutUs'
+import ProductDetails from './pages/ProductDetails'
 import AdminLogin from './pages/AdminLogin'
 import AdminDashboard from './pages/AdminDashboard'
 import AdminRevenue from './pages/AdminRevenue'
@@ -75,6 +76,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/products/:category" element={<ProductCategory />} />
+          <Route path="/product/:id" element={<ProductDetails />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/payment" element={<Payment />} />

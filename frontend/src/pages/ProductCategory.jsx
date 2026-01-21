@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react'
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import axiosInstance from '../services/axios'
 import { useCart } from '../context/CartContext'
 
 const ProductCategory = () => {
   const { category } = useParams()
+  const navigate = useNavigate()
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -88,14 +89,26 @@ const ProductCategory = () => {
           ) : (
             products.map((product) => (
               <div key={product._id} className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 p-4 sm:p-6">
-                <div className="h-40 sm:h-48 bg-gray-200 rounded-lg mb-3 sm:mb-4 flex items-center justify-center overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => navigate(`/product/${product._id}`)}
+                  className="h-40 sm:h-48 w-full bg-gray-200 rounded-lg mb-3 sm:mb-4 flex items-center justify-center overflow-hidden"
+                  title="View product"
+                >
                   {product.image ? (
                     <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
                   ) : (
                     <span className="text-gray-400 text-sm sm:text-base">Product Image</span>
                   )}
-                </div>
-                <h2 className="text-base sm:text-lg font-bold mb-2" style={{ color: '#284B63' }}>{product.name}</h2>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigate(`/product/${product._id}`)}
+                  className="text-left"
+                  title="View product"
+                >
+                  <h2 className="text-base sm:text-lg font-bold mb-2 hover:underline" style={{ color: '#284B63' }}>{product.name}</h2>
+                </button>
                 <p className="text-xs sm:text-sm mb-2" style={{ color: '#284B63' }}>{product.category}</p>
                 {product.brand && (
                   <p className="text-xs sm:text-sm mb-2 text-gray-500">Brand: {product.brand}</p>

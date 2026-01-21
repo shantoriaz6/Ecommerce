@@ -77,17 +77,29 @@ const Cart = () => {
               {cart?.items?.map((item) => (
                 <div key={item._id} className="bg-white rounded-lg shadow-md p-6 flex flex-col sm:flex-row gap-4">
                   {/* Product Image */}
-                  <div className="w-full sm:w-32 h-32 bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/product/${item.product._id}`)}
+                    className="w-full sm:w-32 h-32 bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0"
+                    title="View product"
+                  >
                     {item.product.image ? (
                       <img src={item.product.image} alt={item.product.name} className="w-full h-full object-cover" />
                     ) : (
                       <span className="text-gray-400">No image</span>
                     )}
-                  </div>
+                  </button>
 
                   {/* Product Details */}
                   <div className="flex-grow">
-                    <h3 className="text-xl font-bold mb-2" style={{ color: '#284B63' }}>{item.product.name}</h3>
+                    <button
+                      type="button"
+                      onClick={() => navigate(`/product/${item.product._id}`)}
+                      className="text-left"
+                      title="View product"
+                    >
+                      <h3 className="text-xl font-bold mb-2 hover:underline" style={{ color: '#284B63' }}>{item.product.name}</h3>
+                    </button>
                     <p className="text-gray-600 text-sm mb-2">{item.product.category}</p>
                     {item.product.brand && (
                       <p className="text-gray-500 text-sm mb-2">Brand: {item.product.brand}</p>

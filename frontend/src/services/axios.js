@@ -36,9 +36,10 @@ axiosInstance.interceptors.request.use(
     
     // Skip token check for login, register, and public endpoints
     const isPublicEndpoint = config.url?.includes('/login') || 
-                             config.url?.includes('/register') || 
-                             config.url?.includes('/refresh-token') ||
-                             (config.url?.includes('/products') && config.method === 'get');
+                 config.url?.includes('/register') || 
+                 config.url?.includes('/refresh-token') ||
+                 config.url?.includes('/chat') ||
+                 (config.url?.includes('/products') && config.method === 'get');
     
     // Use appropriate token based on current page context
     let token, loginPath;
@@ -59,8 +60,10 @@ axiosInstance.interceptors.request.use(
       return Promise.reject(new Error('No authentication token found'));
     }
     
-    if (token) {
+    if (token && !isPublicEndpoint) {
       config.headers.Authorization = `Bearer ${token}`;
+    } else if (config.headers?.Authorization) {
+      delete config.headers.Authorization;
     }
     return config;
   },

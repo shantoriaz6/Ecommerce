@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import toast from 'react-hot-toast'
 import axiosInstance from '../services/axios'
 import { useCart } from '../context/CartContext'
 
@@ -92,7 +93,6 @@ const Offers = () => {
                   <h3 className="font-semibold text-lg mb-2 line-clamp-2" style={{ color: '#284B63' }}>
                     {product.name}
                   </h3>
-                  <p className="text-sm text-gray-600 mb-3 line-clamp-2">{product.description}</p>
 
                   {product.discount > 0 ? (
                     <div className="mb-3">

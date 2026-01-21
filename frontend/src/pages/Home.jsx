@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import axiosInstance from '../services/axios'
 import { useCart } from '../context/CartContext'
+import LiveChatWidget from '../components/LiveChatWidget'
 
 const Home = () => {
   const [products, setProducts] = useState([])
@@ -250,14 +251,26 @@ const Home = () => {
           ) : (
             filteredProducts.map((product) => (
               <div key={product._id} className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 p-4 sm:p-6">
-                <div className="h-40 sm:h-48 bg-gray-200 rounded-lg mb-3 sm:mb-4 flex items-center justify-center overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => navigate(`/product/${product._id}`)}
+                  className="h-40 sm:h-48 w-full bg-gray-200 rounded-lg mb-3 sm:mb-4 flex items-center justify-center overflow-hidden"
+                  title="View product"
+                >
                   {product.image ? (
                     <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
                   ) : (
                     <span className="text-gray-400 text-sm sm:text-base">Product Image</span>
                   )}
-                </div>
-                <h2 className="text-base sm:text-lg font-bold mb-2" style={{ color: '#284B63' }}>{product.name}</h2>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigate(`/product/${product._id}`)}
+                  className="text-left"
+                  title="View product"
+                >
+                  <h2 className="text-base sm:text-lg font-bold mb-2 hover:underline" style={{ color: '#284B63' }}>{product.name}</h2>
+                </button>
                 <p className="text-xs sm:text-sm mb-2" style={{ color: '#284B63' }}>{product.category}</p>
                 {product.brand && (
                   <p className="text-xs sm:text-sm mb-2 text-gray-500">Brand: {product.brand}</p>
@@ -277,6 +290,9 @@ const Home = () => {
           )}
         </div>
       </div>
+
+      {/* Live Chat (AI) */}
+      <LiveChatWidget />
     </div>
   )
 }

@@ -103,7 +103,6 @@ const HotDeals = () => {
                   <h3 className="font-semibold text-lg mb-2 line-clamp-2" style={{ color: '#284B63' }}>
                     {product.name}
                   </h3>
-                  <p className="text-sm text-gray-600 mb-3 line-clamp-2">{product.description}</p>
 
                   <div className="mb-3">
                     <p className="text-sm text-gray-500 line-through">{product.price}৳</p>
