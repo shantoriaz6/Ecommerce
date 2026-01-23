@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import toast from 'react-hot-toast'
 import axiosInstance from '../services/axios'
 
 const DeliverymanDashboard = () => {
@@ -43,12 +44,12 @@ const DeliverymanDashboard = () => {
         status,
         deliveryNotes: notes
       })
-      alert('Order status updated successfully!')
+      toast.success('Order status updated successfully!')
       setShowModal(false)
       fetchData()
     } catch (err) {
       console.error('Error updating order:', err)
-      alert('Failed to update order status')
+      toast.error(err.response?.data?.message || 'Failed to update order status')
     }
   }
 
@@ -57,11 +58,11 @@ const DeliverymanDashboard = () => {
       await axiosInstance.patch(`/deliveryman/orders/${orderId}/decision`, {
         decision
       })
-      alert(`Order ${decision.toLowerCase()} successfully!`)
+      toast.success(`Order ${decision.toLowerCase()} successfully!`)
       fetchData()
     } catch (err) {
       console.error('Error deciding order:', err)
-      alert(err.response?.data?.message || 'Failed to update decision')
+      toast.error(err.response?.data?.message || 'Failed to update decision')
     }
   }
 
