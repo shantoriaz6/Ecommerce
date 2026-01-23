@@ -5,6 +5,12 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import jwt from "jsonwebtoken";
 
+const cookieOptions = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+};
+
 // Generate tokens
 const generateAccessAndRefreshTokens = async (deliverymanId) => {
   try {
@@ -72,15 +78,10 @@ const loginDeliveryman = asyncHandler(async (req, res) => {
   );
 
   // Cookie options
-  const options = {
-    httpOnly: true,
-    secure: true
-  };
-
   return res
     .status(200)
-    .cookie("accessToken", accessToken, options)
-    .cookie("refreshToken", refreshToken, options)
+    .cookie("accessToken", accessToken, cookieOptions)
+    .cookie("refreshToken", refreshToken, cookieOptions)
     .json(
       new ApiResponse(
         200,
@@ -108,21 +109,16 @@ const logoutDeliveryman = asyncHandler(async (req, res) => {
     }
   );
 
-  const options = {
-    httpOnly: true,
-    secure: true
-  };
-
   return res
     .status(200)
-    .clearCookie("accessToken", options)
-    .clearCookie("refreshToken", options)
+    .clearCookie("accessToken", cookieOptions)
+    .clearCookie("refreshToken", cookieOptions)
     .json(new ApiResponse(200, {}, "Delivery man logged out"));
 });
 
 // Refresh delivery man access token
 const refreshDeliverymanToken = asyncHandler(async (req, res) => {
-  const incomingRefreshToken = req.cookies?.refreshToken || req.body?.refreshToken;
+  const incomingRefreshToken = req.body?.refreshToken || req.cookies?.refreshToken;
   
   if (!incomingRefreshToken) {
     throw new ApiError(401, "Refresh token missing");
@@ -148,15 +144,10 @@ const refreshDeliverymanToken = asyncHandler(async (req, res) => {
     const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(deliveryman._id);
     const safeDeliveryman = await Deliveryman.findById(deliveryman._id).select("-password -refreshToken");
 
-    const options = {
-      httpOnly: true,
-      secure: true
-    };
-
     return res
       .status(200)
-      .cookie("accessToken", accessToken, options)
-      .cookie("refreshToken", refreshToken, options)
+      .cookie("accessToken", accessToken, cookieOptions)
+      .cookie("refreshToken", refreshToken, cookieOptions)
       .json(
         new ApiResponse(
           200,
@@ -279,6 +270,52 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, updatedOrder, "Order status updated successfully"));
 });
 
+// Accept or deny an assigned order
+const decideAssignedOrder = asyncHandler(async (req, res) => {
+  const { orderId } = req.params;
+  const { decision, note } = req.body;
+
+  if (!decision) {
+    throw new ApiError(400, "Decision is required");
+  }
+
+  const normalizedDecision = String(decision).trim();
+  const allowedDecisions = ["Accepted", "Denied"];
+  if (!allowedDecisions.includes(normalizedDecision)) {
+    throw new ApiError(400, "Decision must be 'Accepted' or 'Denied'");
+  }
+
+  const order = await Order.findOne({
+    _id: orderId,
+    deliveryman: req.deliveryman._id
+  });
+
+  if (!order) {
+    throw new ApiError(404, "Order not found or not assigned to you");
+  }
+
+  if (order.deliverymanDecision && order.deliverymanDecision !== "Pending") {
+    throw new ApiError(400, `Order has already been ${order.deliverymanDecision.toLowerCase()}`);
+  }
+
+  order.deliverymanDecision = normalizedDecision;
+  order.deliverymanDecisionAt = new Date();
+  if (typeof note === "string" && note.trim().length > 0) {
+    order.deliverymanDecisionNote = note.trim();
+  }
+
+  await order.save();
+
+  const updatedOrder = await Order.findById(orderId)
+    .populate('user', 'fullName email phone')
+    .populate('items.product', 'name price image')
+    .populate('deliveryman', 'name phone email vehicleType vehicleNumber');
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, updatedOrder, `Order ${normalizedDecision.toLowerCase()} successfully`));
+});
+
 // Get delivery statistics
 const getDeliveryStats = asyncHandler(async (req, res) => {
   const deliveryman = await Deliveryman.findById(req.deliveryman._id).select("-password -refreshToken");
@@ -315,5 +352,6 @@ export {
   updateLocation,
   getAssignedOrders,
   updateOrderStatus,
+  decideAssignedOrder,
   getDeliveryStats
 };

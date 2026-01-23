@@ -151,7 +151,7 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Status is required");
   }
 
-  const validStatuses = ['Pending', 'Confirmed', 'Shipped', 'Delivered', 'Cancelled'];
+  const validStatuses = ['Pending', 'Confirmed', 'Shipped', 'Out for Delivery', 'Delivered', 'Cancelled'];
   if (!validStatuses.includes(status)) {
     throw new ApiError(400, "Invalid status");
   }

@@ -6,6 +6,12 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import jwt from "jsonwebtoken";
 
+const cookieOptions = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+};
+
 // Generate tokens
 const generateAccessAndRefreshTokens = async (adminId) => {
   try {
@@ -109,15 +115,10 @@ const loginAdmin = asyncHandler(async (req, res) => {
   );
 
   // Cookie options
-  const options = {
-    httpOnly: true,
-    secure: true
-  };
-
   return res
     .status(200)
-    .cookie("accessToken", accessToken, options)
-    .cookie("refreshToken", refreshToken, options)
+    .cookie("accessToken", accessToken, cookieOptions)
+    .cookie("refreshToken", refreshToken, cookieOptions)
     .json(
       new ApiResponse(
         200,
@@ -145,21 +146,16 @@ const logoutAdmin = asyncHandler(async (req, res) => {
     }
   );
 
-  const options = {
-    httpOnly: true,
-    secure: true
-  };
-
   return res
     .status(200)
-    .clearCookie("accessToken", options)
-    .clearCookie("refreshToken", options)
+    .clearCookie("accessToken", cookieOptions)
+    .clearCookie("refreshToken", cookieOptions)
     .json(new ApiResponse(200, {}, "Admin logged out"));
 });
 
 // Refresh admin access token
 const refreshAdminToken = asyncHandler(async (req, res) => {
-  const incomingRefreshToken = req.cookies?.refreshToken || req.body?.refreshToken;
+  const incomingRefreshToken = req.body?.refreshToken || req.cookies?.refreshToken;
   
   if (!incomingRefreshToken) {
     throw new ApiError(401, "Refresh token missing");
@@ -187,15 +183,10 @@ const refreshAdminToken = asyncHandler(async (req, res) => {
     const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(admin._id);
     const safeAdmin = await Admin.findById(admin._id).select("-password -refreshToken");
 
-    const options = {
-      httpOnly: true,
-      secure: true
-    };
-
     return res
       .status(200)
-      .cookie("accessToken", accessToken, options)
-      .cookie("refreshToken", refreshToken, options)
+      .cookie("accessToken", accessToken, cookieOptions)
+      .cookie("refreshToken", refreshToken, cookieOptions)
       .json(
         new ApiResponse(
           200,
@@ -326,6 +317,9 @@ const assignOrderToDeliveryman = asyncHandler(async (req, res) => {
   // Assign delivery man to order
   order.deliveryman = deliverymanId;
   order.assignedAt = new Date();
+  order.deliverymanDecision = 'Pending';
+  order.deliverymanDecisionAt = new Date();
+  order.deliverymanDecisionNote = undefined;
   order.status = 'Out for Delivery';
   await order.save();
 

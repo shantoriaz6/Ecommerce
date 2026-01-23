@@ -58,6 +58,17 @@ const orderSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Deliveryman"
     },
+    deliverymanDecision: {
+      type: String,
+      enum: ["Pending", "Accepted", "Denied"],
+      default: "Pending"
+    },
+    deliverymanDecisionAt: {
+      type: Date
+    },
+    deliverymanDecisionNote: {
+      type: String
+    },
     assignedAt: {
       type: Date
     },

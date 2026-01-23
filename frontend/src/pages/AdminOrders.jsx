@@ -791,11 +791,34 @@ const AdminOrders = () => {
                   {/* Delivery Assignment Badge */}
                   {order.deliveryman && (
                     <div className="mb-4 bg-gradient-to-r from-green-50 to-emerald-50 border-l-4 border-green-500 rounded-lg px-4 py-3">
-                      <p className="text-sm flex items-center gap-2">
+                      <p className="text-sm flex items-center gap-2 flex-wrap">
                         <span className="text-lg">🚚</span>
                         <span className="font-semibold text-gray-700">Assigned to:</span>
                         <span className="font-bold text-green-700">{order.deliveryman.name}</span>
+                        {order.deliverymanDecision && (
+                          <span
+                            className={`ml-2 px-3 py-1 rounded-full text-xs font-bold ${
+                              order.deliverymanDecision === 'Accepted'
+                                ? 'bg-green-100 text-green-800'
+                                : order.deliverymanDecision === 'Denied'
+                                ? 'bg-red-100 text-red-800'
+                                : 'bg-yellow-100 text-yellow-800'
+                            }`}
+                          >
+                            {order.deliverymanDecision === 'Pending' ? 'Pending Response' : order.deliverymanDecision}
+                          </span>
+                        )}
                       </p>
+                      {order.deliverymanDecisionAt && (
+                        <p className="text-xs text-gray-600 mt-1">
+                          Response time: {new Date(order.deliverymanDecisionAt).toLocaleString()}
+                        </p>
+                      )}
+                      {order.deliverymanDecisionNote && (
+                        <p className="text-xs text-gray-700 mt-1">
+                          Note: {order.deliverymanDecisionNote}
+                        </p>
+                      )}
                     </div>
                   )}
 
@@ -843,6 +866,15 @@ const AdminOrders = () => {
                           className="px-5 py-2.5 bg-gradient-to-r from-green-600 to-green-500 text-white rounded-xl hover:from-green-700 hover:to-green-600 transition-all duration-300 font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center gap-2"
                         >
                           <span>🚚</span> Assign Delivery
+                        </button>
+                      )}
+
+                      {order.deliveryman && order.deliverymanDecision === 'Denied' && (
+                        <button
+                          onClick={() => openAssignModal(order)}
+                          className="px-5 py-2.5 bg-gradient-to-r from-red-600 to-red-500 text-white rounded-xl hover:from-red-700 hover:to-red-600 transition-all duration-300 font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center gap-2"
+                        >
+                          <span>🔁</span> Reassign Delivery
                         </button>
                       )}
                     </div>
